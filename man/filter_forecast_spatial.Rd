@@ -4,7 +4,7 @@
 \alias{filter_forecast_spatial}
 \title{Title}
 \usage{
-filter_forecast_spatial(df = forecast_data, zones)
+filter_forecast_spatial(df = forecast_data, strata_column, strata_value)
 }
 \arguments{
 \item{zones}{}

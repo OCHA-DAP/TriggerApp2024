@@ -11,8 +11,9 @@ app_ui <- function(request) {
   tagList(
     golem_add_external_resources(),
     fluidPage(
-      h1("TriggerApp2024"),
-      mod_historical_analysis_ui("historical_analysis_1")
+      h1("Anticipatory Action: Seasonal Drought Trigger Forecasting"),
+      # mod_historical_analysis_ui("historical_analysis_1"),
+      mod_historical_process_simp_ui("historical_process_simp_1")
     )
   )
 }

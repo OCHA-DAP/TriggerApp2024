@@ -4,7 +4,7 @@
 \alias{load_df_forecast}
 \title{load_df_forecast}
 \usage{
-load_df_forecast(dataset = "mars")
+load_df_forecast(dataset = "mars_lac")
 }
 \description{
 load_df_forecast
