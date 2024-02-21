@@ -6,6 +6,15 @@
 \usage{
 load_df_forecast(dataset = "mars_lac")
 }
+\value{
+`data.frame` with forecast in format required by app.
+}
 \description{
-load_df_forecast
+convenience function to load appropriate dataset for app development
+Does need some work.
+}
+\examples{
+\dontrun{
+load_df_forecast(dataset= "mars_eth")
+}
 }

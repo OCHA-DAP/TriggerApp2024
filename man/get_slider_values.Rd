@@ -2,13 +2,20 @@
 % Please edit documentation in R/utils1.R
 \name{get_slider_values}
 \alias{get_slider_values}
-\title{Title}
+\title{get_slider_values}
 \usage{
 get_slider_values(input, publication_months, valid_months)
 }
 \arguments{
-\item{valid_months}{}
+\item{input}{shiny input object}
+
+\item{publication_months}{`numeric` vector of publication months}
+
+\item{valid_months}{`numeric` vector of valid months}
+}
+\value{
+list of numeric slider values
 }
 \description{
-Title
+grab user-defined inputs from sliders. Can only really be used in `reactive` context
 }

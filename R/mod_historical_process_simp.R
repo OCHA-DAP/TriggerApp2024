@@ -60,7 +60,47 @@ mod_historical_process_simp_ui <- function(id) {
           choices = "",
           multiple = T
         )
+      ),
+      checkboxInput(
+        inputId=ns("group_strata"),
+        label = "Group selected strata?",
+        value = TRUE
+      ),
+      conditionalPanel( # move up
+        ns=ns,
+        condition= "input.analysis_level=='adm1_pcode' && input.group_strata==true",
+        sortable::bucket_list(
+          header = "Drag the items in any desired bucket",
+          group_name = "bucket_list_group",
+          orientation = "horizontal",
+
+          sortable::add_rank_list(
+            text = "Drag from here",
+            labels = list(
+              "one",
+              "two",
+              "three",
+              htmltools::tags$div(
+                htmltools::em("Complex"), " html tag without a name"
+              ),
+              "five" = htmltools::tags$div(
+                htmltools::em("Complex"), " html tag with name: 'five'"
+              )
+            ),
+            input_id = "rank_list_1"
+        ),
+        sortable::add_rank_list(
+          text = "to here",
+          labels = NULL,
+          input_id = "rank_list_2"
+        ),
+        sortable::add_rank_list(
+          text = "or here",
+          labels = NULL,
+          input_id = "rank_list_3"
+        )
       )
+    )
     ),
     shinyWidgets::checkboxGroupButtons(
       inputId = ns("valid_mo1"), # time of interest
@@ -105,6 +145,11 @@ mod_historical_process_simp_ui <- function(id) {
 mod_historical_process_simp_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+
+    fill_big_bucket <- reactive({
+      input$sel_adm3 %||% input$sel_adm2 %||% input$sel_adm1
+    })
+
 
     # Update Admin Choices ####
     # update available choices for admin 2 based on admin 1 selection

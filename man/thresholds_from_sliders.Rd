@@ -12,7 +12,3 @@ thresholds_from_sliders(df, input, publication_months, valid_months)
 \description{
 Title
 }
-\examples{
-Title
-
-}
