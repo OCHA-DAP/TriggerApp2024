@@ -1,9 +1,13 @@
 #' load_df_forecast
-#'
-#' @return
+#' @description
+#' convenience function to load appropriate dataset for app development
+#' Does need some work.
+#' @return `data.frame` with forecast in format required by app.
 #' @export
 #'
-#' @examples
+#' @examples \dontrun{
+#' load_df_forecast(dataset= "mars_eth")
+#' }
 load_df_forecast <-  function(dataset="mars_lac"){
 
 
@@ -31,16 +35,6 @@ load_df_forecast <-  function(dataset="mars_lac"){
   }
 }
 
-#' Title
-#'
-#' @return
-#' @export
-#'
-#' @examples
-classify_df_seasons <-  function(valid_months, pub_months){
-
-}
-
 
 #' Title
 #'
@@ -60,13 +54,14 @@ filter_forecast_spatial <-  function(df= forecast_data,
 
 }
 
-#' Title
+#' get_slider_values
+#' @description
+#' grab user-defined inputs from sliders. Can only really be used in `reactive` context
+#' @param input shiny input object
+#' @param publication_months `numeric` vector of publication months
+#' @param valid_months `numeric` vector of valid months
 #'
-#' @param input
-#' @param publication_months
-#' @param valid_months
-#'
-#' @return
+#' @return list of numeric slider values
 #' @export
 #'
 #' @examples
@@ -76,13 +71,10 @@ get_slider_values <-  function(input,
 
   lts = available_lts(
     publication_months = publication_months,
-    valid_months= valid_months)
-  lt_id_tags <- names(lts)
+    valid_months= valid_months
+    )
 
-  # lt_id_tags = adjustable_leadtimes(
-  #   publication_months = publication_months,
-  #   valid_months= valid_months) |>
-  #   sort()
+  lt_id_tags <- names(lts)
 
   purrr::set_names(lt_id_tags,lt_id_tags) |>
     purrr::map(\(lt){
@@ -91,15 +83,6 @@ get_slider_values <-  function(input,
 }
 
 
-
-#' Title
-#'
-#' @return
-#' @export
-#'
-#' @examples
-# aggregate_forecast <- function(){
-# }
 
 
 #' Title
