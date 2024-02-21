@@ -9,4 +9,7 @@ app_server <- function(input, output, session) {
   ldf <- load_df_forecast(dataset = "mars_eth")
   # mod_historical_analysis_server("historical_analysis_1")
   mod_historical_process_simp_server("historical_process_simp_1")
+  mod_layout_server("layout_1")
+
+  #
 }

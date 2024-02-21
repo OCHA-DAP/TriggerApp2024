@@ -11,133 +11,135 @@ mod_historical_process_simp_ui <- function(id) {
   ns <- NS(id)
   tabPanel(
     title = "Historical Analysis",
-    inputPanel(
-      selectInput(
-        inputId = ns("analysis_level"),
-        label = "Select Analysis Level",
-        choices = c(
-          Country = "adm0_pcode",
-          `Admin 1` = "adm1_pcode",
-          `Admin 2` = "adm2_pcode",
-          `Admin 3` = "adm3_pcode"
-        ),
-        selected = "adm0_pcode"
-      ),
-      conditionalPanel(
-        ns = ns,
-        condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-        selectizeInput(ns("sel_adm1"),
-          label = "Admin 1",
-          selected = "ET02",
-          choices = rlang::set_names(
-            ldf$adm1 |>
-              dplyr::distinct(adm1_pcode, adm1_en) |>
-              dplyr::pull(adm1_pcode),
-            ldf$adm1 |>
-              dplyr::distinct(adm1_pcode, adm1_en) |>
-              dplyr::pull(adm1_en)
+    fluidRow(
+      column(
+        3,
+        selectInput(
+          inputId = ns("analysis_level"),
+          label = "Select Analysis Level",width = "100%",
+          choices = c(
+            Country = "adm0_pcode",
+            `Admin 1` = "adm1_pcode",
+            `Admin 2` = "adm2_pcode",
+            `Admin 3` = "adm3_pcode"
           ),
-          multiple = T
-        )
-      ),
-      conditionalPanel(
-        ns = ns,
-        condition = "input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-        selectizeInput(
-          ns("sel_adm2"),
-          label = "Admin 2",
-          # selected= ,
-          choices = "",
-          multiple = T
-        )
-      ),
-      conditionalPanel(
-        ns = ns,
-        condition = "input.analysis_level=='adm3_pcode'",
-        selectizeInput(
-          ns("sel_adm3"),
-          label = "Admin 3",
-          choices = "",
-          multiple = T
-        )
-      ),
-      checkboxInput(
-        inputId=ns("group_strata"),
-        label = "Group selected strata?",
-        value = TRUE
-      ),
-      conditionalPanel( # move up
-        ns=ns,
-        condition= "input.analysis_level=='adm1_pcode' && input.group_strata==true",
-        sortable::bucket_list(
-          header = "Drag the items in any desired bucket",
-          group_name = "bucket_list_group",
-          orientation = "horizontal",
+          selected = "adm0_pcode"
+        ) # end selinput
+      ), # end column
+      column(
+        3,
+        conditionalPanel(
+          ns = ns,
+          condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+          selectizeInput(ns("sel_adm1"),
+                         label = "Admin 1",
+                         selected = "ET02",
+                         choices = rlang::set_names(
+                           ldf$adm1 |>
+                             dplyr::distinct(adm1_pcode, adm1_en) |>
+                             dplyr::pull(adm1_pcode),
+                           ldf$adm1 |>
+                             dplyr::distinct(adm1_pcode, adm1_en) |>
+                             dplyr::pull(adm1_en)
+                         ),
+                         multiple = T
+          ) #\sel
+        ) #\ cond
+      ), #\col,
+      column(
+        3,
+        conditionalPanel(
+          ns = ns,
+          condition = "input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+          selectizeInput(
+            ns("sel_adm2"),
+            label = "Admin 2",
+            # selected= ,
+            choices = "",
+            multiple = T
+          ) #end sel input
+        )# \end conditional
+      ),#end column
+      column(
+        3,
+        conditionalPanel(
+          ns = ns,
+          condition = "input.analysis_level=='adm3_pcode'",
+          selectizeInput(
+            ns("sel_adm3"),
+            label = "Admin 3",
+            choices = "",
+            multiple = T
+          ) # end sel input
+        )#end cond panel
+      )# end column
+    ), #fluidRow
 
-          sortable::add_rank_list(
-            text = "Drag from here",
-            labels = list(
-              "one",
-              "two",
-              "three",
-              htmltools::tags$div(
-                htmltools::em("Complex"), " html tag without a name"
-              ),
-              "five" = htmltools::tags$div(
-                htmltools::em("Complex"), " html tag with name: 'five'"
-              )
-            ),
-            input_id = "rank_list_1"
+    fluidRow(
+      column(
+        6,
+        checkboxInput(
+          inputId=ns("group_strata"),
+          label = "Group selected strata?",
+          value = TRUE
+        )
+      ),#,
+      column(
+        6,
+        numericInput(
+          inputId=ns("numb_strata_groups"),
+          label = "How many groups?",
+          value = 2
+        )
+      )
+      ),
+      fluidRow(
+        column(
+          12,
+          uiOutput(ns("admins_drag")),
+        ) # \end col
+      ),
+      # br(),
+      # br(),
+      # br(),
+      shinyWidgets::checkboxGroupButtons(
+        inputId = ns("valid_mo1"), # time of interest
+        choices = c(1:12) |>
+          rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
+        selected = c(4,5),
+        # inline=T,
+        label = "Step 1: Select time period/window of concern"
+      ),
+      shinyWidgets::checkboxGroupButtons(
+        inputId = ns("pub_mo1"),
+        label = "2. Available months to monitor from:",
+        choices = c(1:12) |>
+          rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
+        selected = c(11,12,1,2, 3, 4),
+      ),
+
+      # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
+      fluidRow(
+        column(
+          width = 6,
+          div(
+            class = "label-left",
+            uiOutput(ns("lt_ui"))
+          )
         ),
-        sortable::add_rank_list(
-          text = "to here",
-          labels = NULL,
-          input_id = "rank_list_2"
-        ),
-        sortable::add_rank_list(
-          text = "or here",
-          labels = NULL,
-          input_id = "rank_list_3"
+        column(
+          width = 6,
+          # div(style='height:100%; overflow-y:scroll', # can consider this if issues w/ table sizing
+          gt::gt_output(outputId = ns("test_thresholds"))
+        )
+      ),
+      fluidRow(
+        column(12,
+               plotOutput(ns("historical_scatter"))
         )
       )
     )
-    ),
-    shinyWidgets::checkboxGroupButtons(
-      inputId = ns("valid_mo1"), # time of interest
-      choices = c(1:12) |>
-        rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
-      selected = c(4,5),
-      # inline=T,
-      label = "Step 1: Select time period/window of concern"
-    ),
-    shinyWidgets::checkboxGroupButtons(
-      inputId = ns("pub_mo1"),
-      label = "2. Available months to monitor from:",
-      choices = c(1:12) |>
-        rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
-      selected = c(11,12,1,2, 3, 4),
-    ),
-
-    # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
-    fluidRow(
-      column(
-        width = 6,
-        div(
-          class = "label-left",
-          uiOutput(ns("lt_ui"))
-        )
-      ),
-      column(
-        width = 6,
-        # div(style='height:100%; overflow-y:scroll', # can consider this if issues w/ table sizing
-        gt::gt_output(outputId = ns("test_thresholds"))
-      )
-    ),
-    plotOutput(ns("historical_scatter")),
-    textOutput(ns("svs"))
-    # )
-  )
-}
+    }
 
 #' historical_process_simp Server Functions
 #'
@@ -147,8 +149,63 @@ mod_historical_process_simp_server <- function(id) {
     ns <- session$ns
 
     fill_big_bucket <- reactive({
-      input$sel_adm3 %||% input$sel_adm2 %||% input$sel_adm1
+      # browser()
+      input_codes_use <- input$sel_adm3 %||% input$sel_adm2 %||% input$sel_adm1
+      input_ids <- c("adm3","adm2","adm1")
+      adm_inputs <- list(input$sel_adm3 , input$sel_adm2 , input$sel_adm1)
+      idx_not_null <- which(purrr::map_lgl(adm_inputs, ~!is.null(.x)))
+      min_idx <- min(idx_not_null)
+      input_id_use<- input_ids[[min_idx]]
+
+      pcode_col_chr<- paste0(input_id_use,"_pcode")
+      lbl_col_chr<- paste0(input_id_use,"_en")
+
+      df_use <-  ldf[[input_id_use]]
+      df_use_lookup <- df_use |>
+        dplyr::filter(
+          !!rlang::sym(pcode_col_chr) %in% input_codes_use
+        ) |>
+        dplyr::distinct(
+          !!rlang::sym(pcode_col_chr),
+          !!rlang::sym(lbl_col_chr)
+        )
+      purrr::map(df_use_lookup[[lbl_col_chr]],
+                 \(lbl){
+                   tags$div(htmltools::em(lbl))
+                 }) |>
+        purrr::set_names(df_use_lookup[[pcode_col_chr]])
+
+
     })
+    output$admins_drag <- shiny::renderUI({
+      conditionalPanel( # move up
+        ns=ns,
+        condition= "input.analysis_level!='adm0_pcode' && input.group_strata==true",
+        sortable::bucket_list(
+          header = "Drag the items in any desired bucket",
+          group_name = "bucket_list_group",
+          orientation = "horizontal",
+
+          sortable::add_rank_list(
+            text = "All Strata (Drag from Here)",
+            labels = fill_big_bucket(),
+            input_id = "rank_list_1"
+          ),
+          sortable::add_rank_list(
+            text = "add to Group 1",
+            labels = NULL,
+            input_id = "rank_list_2"
+          ),
+          sortable::add_rank_list(
+            text = "or Group 2",
+            labels = NULL,
+            input_id = "rank_list_3"
+          )
+        )
+      )
+    })
+
+
 
 
     # Update Admin Choices ####
@@ -226,8 +283,8 @@ mod_historical_process_simp_server <- function(id) {
 
 
             # l_lts |>
-              # sort() |>
-              # rev() |> # reverse order testing for mental model
+            # sort() |>
+            # rev() |> # reverse order testing for mental model
             available_lts |>
               purrr::imap(\(mo_tmp,lt_tmp){
                 pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
