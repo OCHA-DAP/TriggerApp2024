@@ -92,7 +92,7 @@ mod_historical_analysis_server <- function(id){
 
     ## Render Pub Mo UI ####
     pub_mo_choices <- reactive({
-      choices <- find_pub_mos(x = input$valid_mo1)
+      choices <- find_pub_mos(valid_months = input$valid_mo1)
       rlang::set_names(
         choices,
         lubridate::month(

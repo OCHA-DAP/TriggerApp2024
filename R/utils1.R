@@ -74,10 +74,15 @@ get_slider_values <-  function(input,
                                publication_months,
                                valid_months){
 
-  lt_id_tags = adjustable_leadtimes(
+  lts = available_lts(
     publication_months = publication_months,
-    valid_months= valid_months) |>
-    sort()
+    valid_months= valid_months)
+  lt_id_tags <- names(lts)
+
+  # lt_id_tags = adjustable_leadtimes(
+  #   publication_months = publication_months,
+  #   valid_months= valid_months) |>
+  #   sort()
 
   purrr::set_names(lt_id_tags,lt_id_tags) |>
     purrr::map(\(lt){
@@ -205,32 +210,90 @@ classify_historical <- function(
 # }
 
 
-find_pub_mos <-  function(x=c(5,6,7,8)){
-  # browser()
-  x <- as.numeric(unname(x))
-  avail_mo_list <- load_pub_mo_list(lt=6)
-  month_diffs <- diff(c(x, x[1] + 12))
+# find_pub_mos <-  function(x=c(5,6,7,8)){
+#   # browser()
+#   x <- as.numeric(unname(x))
+#   avail_mo_list <- load_pub_mo_list(lt=6)
+#   month_diffs <- diff(c(x, x[1] + 12))
+#
+#   # Find the index of the maximum difference
+#   max_diff_index <- which.max(month_diffs)
+#
+#   # The maximum month is the one following the index with the maximum difference
+#   max_month <- x[max_diff_index]
+#   max_month_lab <- lubridate::month(max_month,label=T, abbr=T)
+#   pub_mos <- avail_mo_list[[max_month_lab]]
+#   ret <- pub_mos[!(pub_mos %in% x[2:length(x)])]
+#
+#   # hacky solution to fix the fact that if (for example)
+#   # we are monitoring:  5,6,7 we want to exclude May
+#   # but if just monitoring 5 there is nothing to exclude
+#
+#   if(length(x)==1){
+#     ret <- pub_mos
+#   } else{
+#     ret <- pub_mos[!(pub_mos %in% x[2:length(x)])]
+#   }
+#   return(ret)
+# }
 
-  # Find the index of the maximum difference
-  max_diff_index <- which.max(month_diffs)
+#' available_lts
+#'
+#' @param publication_months
+#' @param valid_months
+#'
+#' @return `numeric` named vector where value represent integer for month and name is the integer of leadtime
+#' @export
+#'
+#' @examples \dontrun{
+#' valid_month_ex <- c(5,6)
+#' available_lts(publication_months= find_pub_mos(valid_month_ex), valid_months=valid_month_ex)
+#' available_lts(publication_months= 5, valid_months=valid_month_ex)
+#' available_lts(publication_months= c(3,4), valid_months=4)
+#' }
+available_lts <-  function(publication_months, valid_months=c(5,6)){
+  list_pub_mos <- load_pub_mo_list()
+  # publication_months <- find_pub_mos(valid_months) # just for testing
 
-  # The maximum month is the one following the index with the maximum difference
-  max_month <- x[max_diff_index]
-  max_month_lab <- lubridate::month(max_month,label=T, abbr=T)
-  pub_mos <- avail_mo_list[[max_month_lab]]
-  ret <- pub_mos[!(pub_mos %in% x[2:length(x)])]
+  # consider renaming `find_valid_month_interval` for purpose before (pub_mos)
+  valid_interval <- find_valid_month_interval(valid_months)
+  pub_interval <- find_valid_month_interval(publication_months)
+  latest_month_chr <- lubridate::month(valid_interval$latest,label=T,abbr=T)
+  all_lts <- list_pub_mos[[latest_month_chr]]
+  all_lts_named <- rlang::set_names(all_lts,(length(all_lts):1)-1)
+  lt_idx_start <- which(unname(all_lts_named) == pub_interval$earliest)
+  lt_idx_end <- which(unname(all_lts_named) == pub_interval$latest)
 
-  # hacky solution to fix the fact that if (for example)
-  # we are monitoring:  5,6,7 we want to exclude May
-  # but if just monitoring 5 there is nothing to exclude
+  # in a sense the names used here are the correct lts as they represent the number of
+  # months to the final valid_month, but i think most people think about in terms of
+  # lead time to first valid_month
+  ret_lts <- all_lts_named[lt_idx_start:lt_idx_end]
+  ret_lts <- rlang::set_names(ret_lts, (length(ret_lts):1)-1)
+  return(ret_lts)
 
-  if(length(x)==1){
-    ret <- pub_mos
-  } else{
-    ret <- pub_mos[!(pub_mos %in% x[2:length(x)])]
-  }
-  return(ret)
 }
+
+#' find_pub_mos
+#'
+#' @param valid_months `numeric` vector of valid months
+#'
+#' @return `integer` vector of publication months available based on supplied valid_months
+#' @export
+#'
+#' @examples \dontrun{
+#' find_pub_mos(valid_months = c(12,1,2,3,4,5))
+#' find_pub_mos(valid_months = c(5,6))
+#' }
+find_pub_mos <- function(valid_months){
+  list_pub_mos <- load_pub_mo_list() # default to lt 6.... could include param...
+  valid_interval <- find_valid_month_interval(valid_months)
+  latest_month_chr <- lubridate::month(valid_interval$latest,label=T,abbr=T)
+  all_pub_mos <- list_pub_mos[[latest_month_chr]]
+  idx_pub_cutoff <- which(all_pub_mos==valid_interval$earliest)
+  ret_pub_mos <- all_pub_mos[1:idx_pub_cutoff]
+  return(ret_pub_mos)
+}
+
 
 load_pub_mo_list <- function(lt=6){
   rlang::set_names(c(1:12),
@@ -246,11 +309,108 @@ load_pub_mo_list <- function(lt=6){
 }
 
 
+#' find_latest_valid_month
+#' @description
+#' Correctly find latest month provided by user.
+#' Especially useful if valid month window spans the new year Dec-Jan
+#' @param valid_months
+#'
+#' @return `integer` value of latest month
+#' @export
+#'
+#' @examples \dontrun{
+#' # should throw these in testthat
+#' find_valid_month_interval(valid_months = c(12,1,2,3,4,5))
+#' find_valid_month_interval(valid_months = c(11,12,1,2,3,4,5))
+#' find_valid_month_interval(valid_months = sort(c(11,12,1,2,3)))
+#' find_valid_month_interval(valid_months = sort(c(12,1,2,3)))
+#' }
+
+find_valid_month_interval <- function(valid_months){
+  diff_lag <- valid_months-dplyr::lag(valid_months)
+  idx_switch <- which(diff_lag>1)
+  if(length(idx_switch)==0){
+    max_month <- valid_months[length(valid_months)]
+    min_month <- valid_months[1]
+  }
+  if(length(idx_switch)>0){
+    idx_sort <- c(idx_switch:length(valid_months),1:(idx_switch-1))
+    valid_months_sorted <- valid_months[idx_sort]
+    max_month <- valid_months_sorted[length(valid_months_sorted)]
+    min_month <- valid_months_sorted[1]
+  }
+  return(
+    list(earliest = min_month, latest = max_month)
+  )
+  }
+
+
+
 adjustable_leadtimes <-  function(publication_months, valid_months){
   pub_mos <-  as.numeric(publication_months)
   valid_mo_start <- min(as.numeric(valid_months))
   return(valid_mo_start- pub_mos)
 }
+
+
+
+
+
+#' Title
+#'
+#' @param publication_months
+#' @param valid_months
+#'
+#' @return
+#' @export
+#'
+#' @examples \dontrun{
+#' valid_months_example <- c(4,5)
+#' pub_months_example<- find_pub_mos(x =valid_months_example)
+#' adjustable_leadtimes_robust(publication_months = pub_months_example,valid_months = valid_months_example)
+#'
+#' }
+adjustable_leadtimes_robust <-  function(publication_months,valid_months){
+  publication_mo <- as.numeric(publication_months)
+  valid_mo <- as.numeric(valid_months)
+  multi_yr_pub <- publication_months[1]>publication_months[length(publication_months)]
+  if(multi_yr_pub){
+    dec_idx <- which(!publication_months>dplyr::lag(publication_months))-1
+    publication_months[dec_idx] # issue if skip Dec?
+    prev_year_mos <- publication_months[1:dec_idx]
+    prev_year_dates <- lubridate::as_date(paste0("2020-", formatC(prev_year_mos,
+                                                       digits = 2,
+                                                       flag = "0",
+                                                       width = 2),"-01"))
+    next_year_mos <-  publication_months[(dec_idx+1):length(publication_months)]
+    next_year_dates <- lubridate::as_date(paste0("2021-", formatC(next_year_mos,
+                                                       digits = 2,
+                                                       flag = "0",
+                                                       width = 2),"-01"))
+    all_dates <- c(prev_year_dates,next_year_dates)
+    min_pub_date <- min(all_dates)
+    # not designed yet for multi yr validation
+    min_valid_month <- min(as.numeric(valid_months))
+    min_valid_date <- lubridate::as_date(paste0("2021-", formatC(min_valid_month,
+                                                      digits = 2,
+                                                      flag = "0",
+                                                      width = 2),"-01"))
+    # this should be improved -- go direct from days to months rather than arith
+    lts_days <- (min_valid_date- all_dates)+1
+    # for some reaso counting 30 days as 0 months --
+    # therefore add 1 to make it recognize as month = 1
+    # lts_mos <- as.period(lts_days)%/% months(1)
+    lts_mos <- as.numeric(round(lts_days/30))
+    # as.period(31,"days")%/% months(1)
+  }
+  if(!multi_yr_pub){
+    mon_mo <-  as.numeric(publication_months)
+    valid_start <- min(as.numeric(valid_months))
+    lts_mos <- return(valid_start- mon_mo)
+  }
+  return(lts_mos)
+}
+
 
 #' admin_choices
 #'
@@ -307,15 +467,23 @@ populate_admin_choices <-  function(
   return(ret)
 }
 
-update_admin_choices <-  function(session,
-                                  list_df,
-                                  admin_level_choices = "adm2",
-                                  parent_selection
-                                  ){
 
-  # this doesnt get used anymore, but I want to keep it to remind myself to look for a way
-  # to run shiny::updateSelectizeInput directly int this function for a cleaner app
-  # issue currently is with the shiny session object
+#' ui_update_admin
+#'
+#' @param session
+#' @param input
+#' @param list_df
+#' @param admin_level_choices
+#'
+#' @return
+#' @export
+#'
+#' @examples
+ui_update_admin <-  function(session=session,
+                             input=input,
+                             list_df,
+                             admin_level_choices = "adm2"
+                             ){
 
   update_id <- paste0("sel_",admin_level_choices)
   update_en <- paste0(admin_level_choices,"_en")
@@ -327,12 +495,18 @@ update_admin_choices <-  function(session,
   parent_id <-  paste0("sel_adm",parent_level)
 
   df_ret <- list_df[[admin_level_choices]] |>
-    dplyr::filter(!!rlang::sym(parent_pcode) %in% parent_selection) |>
+    dplyr::filter(!!rlang::sym(parent_pcode) %in% input[[parent_id]]) |>
     dplyr::distinct(!!!rlang::syms(c(update_pcode,update_en)))
 
-  ret <- rlang::set_names(df_ret[[update_pcode]],
+  updated_choices <- rlang::set_names(df_ret[[update_pcode]],
                           df_ret[[update_en]])
-  return(ret)
+
+  updateSelectizeInput(session,
+                       inputId = update_id,
+                       choices = updated_choices
+  )
+  # return(ret)
+
 
 }
 
