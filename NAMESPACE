@@ -2,7 +2,6 @@
 
 export(adjustable_leadtimes_robust)
 export(available_lts)
-export(classify_df_seasons)
 export(filter_forecast_spatial)
 export(find_pub_mos)
 export(find_valid_month_interval)
