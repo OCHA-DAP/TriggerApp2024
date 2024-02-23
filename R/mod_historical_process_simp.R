@@ -81,63 +81,127 @@ mod_historical_process_simp_ui <- function(id) {
         checkboxInput(
           inputId=ns("group_strata"),
           label = "Group selected strata?",
-          value = TRUE
+          value = FALSE
         )
       ),#,
       column(
         6,
-        numericInput(
-          inputId=ns("numb_strata_groups"),
-          label = "How many groups?",
-          value = 2
-        )
-      )
-      ),
-      fluidRow(
-        column(
-          12,
-          uiOutput(ns("admins_drag")),
-        ) # \end col
-      ),
-      # br(),
-      # br(),
-      # br(),
-      shinyWidgets::checkboxGroupButtons(
-        inputId = ns("valid_mo1"), # time of interest
-        choices = c(1:12) |>
-          rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
-        selected = c(4,5),
-        # inline=T,
-        label = "Step 1: Select time period/window of concern"
-      ),
-      shinyWidgets::checkboxGroupButtons(
-        inputId = ns("pub_mo1"),
-        label = "2. Available months to monitor from:",
-        choices = c(1:12) |>
-          rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
-        selected = c(11,12,1,2, 3, 4),
-      ),
-
-      # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
-      fluidRow(
-        column(
-          width = 6,
-          div(
-            class = "label-left",
-            uiOutput(ns("lt_ui"))
+        conditionalPanel(
+          ns= ns,
+          condition= "input.group_strata==true",
+          numericInput(
+            inputId=ns("numb_strata_groups"),
+            label = "How many groups?",
+            value = 1
+          ), # numInput
+        ), # cond
+      ) # col
+      ), # frow
+    fluidRow(
+      column(
+        3,
+        conditionalPanel(
+          ns= ns,
+          condition= "input.group_strata==true",
+          textInput(
+            inputId=ns("group_name1"),
+            label = "Group 1",
+            value = "Group 1"
           )
-        ),
-        column(
-          width = 6,
-          # div(style='height:100%; overflow-y:scroll', # can consider this if issues w/ table sizing
-          gt::gt_output(outputId = ns("test_thresholds"))
         )
       ),
-      fluidRow(
-        column(12,
-               plotOutput(ns("historical_scatter"))
+      column(
+        3,
+        conditionalPanel(
+          ns= ns,
+          condition= "input.group_strata==true && input.numb_strata_groups>1",
+          textInput(
+            inputId=ns("group_name2"),
+            label = "Group 2",
+            value = "Group 2"
+          )
+        )
+      ),
+      column(
+        3,
+        conditionalPanel(
+          ns= ns,
+          condition= "input.group_strata==true && input.numb_strata_groups>2",
+          textInput(
+            inputId=ns("group_name3"),
+            label = "Group 3",
+            value = "Group 3"
+          )
+        )
+      ),
+      column(
+        3,
+        conditionalPanel(
+          ns= ns,
+          condition= "input.group_strata==true && input.numb_strata_groups>3",
+          textInput(
+            inputId=ns("group_name3"),
+            label = "Group Names",
+            value = "Group 4"
+          )
         )
       )
+      ),
+    # conditionalPanel(
+    #   ns= ns,
+    #   condition= "input.group_strata==true",
+    #   uiOutput(ns("group_names"))
+    # ),
+
+    fluidRow(
+      column(
+        12,
+        textOutput(ns("txt_test"))
+
+      )
+      ),
+    fluidRow(
+      column(
+        12,
+        uiOutput(ns("admins_drag")),
+      ) # \end col
+    ), # end fluidRow,
+             shinyWidgets::checkboxGroupButtons(
+               inputId = ns("valid_mo1"), # time of interest
+               choices = c(1:12) |>
+                 rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
+               selected = c(4,5),
+               # inline=T,
+               label = "Step 1: Select time period/window of concern"
+             ),
+             shinyWidgets::checkboxGroupButtons(
+               inputId = ns("pub_mo1"),
+               label = "2. Available months to monitor from:",
+               choices = c(1:12) |>
+                 rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
+               selected = c(11,12,1,2, 3, 4),
+             ),
+
+             # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
+             fluidRow(
+               column(
+                 width = 6,
+                 div(
+                   class = "label-left",
+                   uiOutput(ns("lt_ui"))
+                 )
+               ),
+               column(
+                 width = 6,
+                 # div(style='height:100%; overflow-y:scroll', # can consider this if issues w/ table sizing
+                 gt::gt_output(outputId = ns("test_thresholds"))
+               )
+             ),
+             fluidRow(
+               column(12,
+                      plotOutput(ns("historical_scatter"))
+               )
+             )
     )
     }
 
@@ -148,60 +212,70 @@ mod_historical_process_simp_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    fill_big_bucket <- reactive({
+    fill_draggable_pool <- reactive({
+      fill_strata_grouping_bucket(
+        list_of_dfs = ldf,
+        input= input
+      )
       # browser()
-      input_codes_use <- input$sel_adm3 %||% input$sel_adm2 %||% input$sel_adm1
-      input_ids <- c("adm3","adm2","adm1")
-      adm_inputs <- list(input$sel_adm3 , input$sel_adm2 , input$sel_adm1)
-      idx_not_null <- which(purrr::map_lgl(adm_inputs, ~!is.null(.x)))
-      min_idx <- min(idx_not_null)
-      input_id_use<- input_ids[[min_idx]]
-
-      pcode_col_chr<- paste0(input_id_use,"_pcode")
-      lbl_col_chr<- paste0(input_id_use,"_en")
-
-      df_use <-  ldf[[input_id_use]]
-      df_use_lookup <- df_use |>
-        dplyr::filter(
-          !!rlang::sym(pcode_col_chr) %in% input_codes_use
-        ) |>
-        dplyr::distinct(
-          !!rlang::sym(pcode_col_chr),
-          !!rlang::sym(lbl_col_chr)
-        )
-      purrr::map(df_use_lookup[[lbl_col_chr]],
-                 \(lbl){
-                   tags$div(htmltools::em(lbl))
-                 }) |>
-        purrr::set_names(df_use_lookup[[pcode_col_chr]])
+      # input_codes_use <- input$sel_adm3 %||% input$sel_adm2 %||% input$sel_adm1
+      # input_ids <- c("adm3","adm2","adm1")
+      # adm_inputs <- list(input$sel_adm3 , input$sel_adm2 , input$sel_adm1)
+      # idx_not_null <- which(purrr::map_lgl(adm_inputs, ~!is.null(.x)))
+      # min_idx <- min(idx_not_null)
+      # input_id_use<- input_ids[[min_idx]]
+      #
+      # pcode_col_chr<- paste0(input_id_use,"_pcode")
+      # lbl_col_chr<- paste0(input_id_use,"_en")
+      #
+      # df_use <-  ldf[[input_id_use]]
+      # df_use_lookup <- df_use |>
+      #   dplyr::filter(
+      #     !!rlang::sym(pcode_col_chr) %in% input_codes_use
+      #   ) |>
+      #   dplyr::distinct(
+      #     !!rlang::sym(pcode_col_chr),
+      #     !!rlang::sym(lbl_col_chr)
+      #   )
+      # purrr::map(df_use_lookup[[lbl_col_chr]],
+      #            \(lbl){
+      #              tags$div(htmltools::em(lbl))
+      #            }) |>
+      #   purrr::set_names(df_use_lookup[[pcode_col_chr]])
 
 
     })
+    # output$admins_drag <- ui_draggable(number_groups = input$numb_strata_groups)
+
+
     output$admins_drag <- shiny::renderUI({
+      # browser()
       conditionalPanel( # move up
         ns=ns,
         condition= "input.analysis_level!='adm0_pcode' && input.group_strata==true",
-        sortable::bucket_list(
-          header = "Drag the items in any desired bucket",
-          group_name = "bucket_list_group",
-          orientation = "horizontal",
+        dynamic_bucket_list(num_groups = as.character(input$numb_strata_groups),reservoir = fill_draggable_pool())
 
-          sortable::add_rank_list(
-            text = "All Strata (Drag from Here)",
-            labels = fill_big_bucket(),
-            input_id = "rank_list_1"
-          ),
-          sortable::add_rank_list(
-            text = "add to Group 1",
-            labels = NULL,
-            input_id = "rank_list_2"
-          ),
-          sortable::add_rank_list(
-            text = "or Group 2",
-            labels = NULL,
-            input_id = "rank_list_3"
-          )
-        )
+        # sortable::bucket_list(
+        #   header = "Drag the items in any desired bucket",
+        #   group_name = "bucket_list_group",
+        #   orientation = "horizontal",
+        #
+        #   sortable::add_rank_list(
+        #     text = "All Strata (Drag from Here)",
+        #     labels = fill_draggable_pool(),
+        #     input_id = "rank_list_1"
+        #   ),
+        #   sortable::add_rank_list(
+        #     text = "add to Group 1",
+        #     labels = NULL,
+        #     input_id = "rank_list_2"
+        #   ),
+        #   sortable::add_rank_list(
+        #     text = "or Group 2",
+        #     labels = NULL,
+        #     input_id = "rank_list_3"
+        #   )
+        # )
       )
     })
 
@@ -227,6 +301,35 @@ mod_historical_process_simp_server <- function(id) {
         admin_level_choices = "adm3"
       )
     })
+    # Group NAMES UI ####
+
+      # browser()
+    #   ui_create_group_names <- renderUI({
+    #     ui_group_names(
+    #     input=input,
+    #     number_groups = input$numb_strata_groups
+    #     )
+    #   #
+    #   # output$drag_drop <- ui_drag_drop()
+    # })
+    # output$group_names <-  ui_create_group_names()
+    #
+    # get_group_names <-  function(input,number_groups="numb_strata_groups"){
+    #   grp_nm_ids <- paste0("Group" ,1:input[[number_groups]])
+    #   nm_chr <- grp_nm_ids |>
+    #     purrr::map_chr(
+    #       \(idtmp){
+    #         input[[idtmp]]
+    #       }
+    #     )
+    #   glue::glue_collapse(nm_chr,sep = ",")
+    # }
+    # #
+    # output$txt_test <- renderText({
+    #   # browser()
+    #   get_group_names(input = input, number_groups = "numb_strata_groups")
+    # })
+
 
     # Temporal Render UI ####
     ## Render Pub Mo UI ####

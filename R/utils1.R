@@ -676,6 +676,104 @@ lookup_rename_gt <-  function(analysis_level){
          "adm3_pcode" = list_names[1:6])
 }
 
+
+#' Title
+#'
+#' @param list_of_dfs
+#' @param input
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fill_strata_grouping_bucket <-  function(list_of_dfs = ldf,
+                                         input=input){
+  input_codes_use <- input$sel_adm3 %||% input$sel_adm2 %||% input$sel_adm1
+  input_ids <- c("adm3","adm2","adm1")
+  adm_inputs <- list(input$sel_adm3 , input$sel_adm2 , input$sel_adm1)
+  idx_not_null <- which(purrr::map_lgl(adm_inputs, ~!is.null(.x)))
+  min_idx <- min(idx_not_null)
+  input_id_use<- input_ids[[min_idx]]
+
+  pcode_col_chr<- paste0(input_id_use,"_pcode")
+  lbl_col_chr<- paste0(input_id_use,"_en")
+
+  df_use <-  ldf[[input_id_use]]
+  df_use_lookup <- df_use |>
+    dplyr::filter(
+      !!rlang::sym(pcode_col_chr) %in% input_codes_use
+    ) |>
+    dplyr::distinct(
+      !!rlang::sym(pcode_col_chr),
+      !!rlang::sym(lbl_col_chr)
+    )
+  purrr::map(df_use_lookup[[lbl_col_chr]],
+             \(lbl){
+               tags$div(htmltools::em(lbl))
+             }) |>
+    purrr::set_names(df_use_lookup[[pcode_col_chr]])
+}
+
+ui_group_names <- function(input,number_groups){
+
+  col_width<- ifelse(number_groups<=3,4,12/number_groups)
+  group_input_labels <-  paste0("Group" ,1:number_groups)
+  renderUI({
+    fluidRow(
+    group_input_labels |>
+      purrr::map(
+        \(grp_input_tmp){
+          default_value_isolated <- isolate(input[[grp_input_tmp]] %||% grp_input_tmp)
+            column(
+              col_width,
+              shiny::textInput(
+                inputId = grp_input_tmp,
+                label = grp_input_tmp,
+                value = default_value_isolated
+              )
+            )
+        }
+      )
+      )
+  })
+}
+
+ui_draggable <- function(number_groups){
+  renderUI({
+    conditionalPanel( # move up
+      ns=ns,
+      condition= "input.analysis_level!='adm0_pcode' && input.group_strata==true",
+      sortable::bucket_list(
+        header = "Drag the items in any desired bucket",
+        group_name = "bucket_list_group",
+        orientation = "horizontal",
+
+        sortable::add_rank_list(
+          text = "All Strata (Drag from Here)",
+          labels = fill_draggable_pool(),
+          input_id = paste0("rank_list_1")
+        ) ,
+        if(number_groups > 1){
+          2:number_groups |>
+            purrr::map(
+              \(cont_num){
+                sortable::add_rank_list(
+                  text = as.character(cont_num),
+                  labels = NULL,
+                  input_id = paste0("rank_list_",cont_num)
+                )
+              }
+            )
+
+        }
+    )
+  )
+})
+}
+#
+
+
+
 # scrap / cool ideas
 
 # observe({

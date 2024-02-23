@@ -2,6 +2,8 @@
 
 export(adjustable_leadtimes_robust)
 export(available_lts)
+export(dynamic_bucket_list)
+export(fill_strata_grouping_bucket)
 export(filter_forecast_spatial)
 export(find_pub_mos)
 export(find_valid_month_interval)
