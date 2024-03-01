@@ -96,7 +96,7 @@ mod_historical_process_simp_ui <- function(id) {
           ), # numInput
         ), # cond
       ) # col
-      ), # frow
+    ), # frow
     fluidRow(
       column(
         3,
@@ -146,7 +146,7 @@ mod_historical_process_simp_ui <- function(id) {
           )
         )
       )
-      ),
+    ),
     # conditionalPanel(
     #   ns= ns,
     #   condition= "input.group_strata==true",
@@ -159,51 +159,63 @@ mod_historical_process_simp_ui <- function(id) {
         textOutput(ns("txt_test"))
 
       )
-      ),
+    ),
     fluidRow(
       column(
         12,
         uiOutput(ns("admins_drag")),
       ) # \end col
     ), # end fluidRow,
-             shinyWidgets::checkboxGroupButtons(
-               inputId = ns("valid_mo1"), # time of interest
-               choices = c(1:12) |>
-                 rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
-               selected = c(4,5),
-               # inline=T,
-               label = "Step 1: Select time period/window of concern"
-             ),
-             shinyWidgets::checkboxGroupButtons(
-               inputId = ns("pub_mo1"),
-               label = "2. Available months to monitor from:",
-               choices = c(1:12) |>
-                 rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
-               selected = c(11,12,1,2, 3, 4),
-             ),
+    shinyWidgets::checkboxGroupButtons(
+      inputId = ns("valid_mo1"), # time of interest
+      choices = c(1:12) |>
+        rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
+      selected = c(4,5),
+      # inline=T,
+      label = "Step 1: Select time period/window of concern"
+    ),
+    shinyWidgets::checkboxGroupButtons(
+      inputId = ns("pub_mo1"),
+      label = "2. Available months to monitor from:",
+      choices = c(1:12) |>
+        rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
+      selected = c(11,12,1,2, 3, 4),
+    ),
 
-             # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
-             fluidRow(
-               column(
-                 width = 6,
-                 div(
-                   class = "label-left",
-                   uiOutput(ns("lt_ui"))
-                 )
-               ),
-               column(
-                 width = 6,
-                 # div(style='height:100%; overflow-y:scroll', # can consider this if issues w/ table sizing
-                 gt::gt_output(outputId = ns("test_thresholds"))
-               )
-             ),
-             fluidRow(
-               column(12,
-                      plotOutput(ns("historical_scatter"))
-               )
+    # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
+    fluidRow(
+      column(
+        width = 6,
+        div(
+          class = "label-left",
+          uiOutput(ns("lt_ui"))
+        )
+      ),
+      column(
+        width = 6,
+        # div(style='height:100%; overflow-y:scroll', # can consider this if issues w/ table sizing
+        gt::gt_output(outputId = ns("test_thresholds"))
+      )
+    ),
+    fluidRow(
+      column(12,
+             plotOutput(ns("historical_scatter"))
+      )
+    ),
+    # fluidRow(
+    #   column(12,
+    #          tableOutput(ns("test_strata_table"))
+    #          )
+    # ),
+    fluidRow(
+      column(12,
+             textOutput(ns("test_bucket_test"))
              )
     )
-    }
+
+
+  )
+}
 
 #' historical_process_simp Server Functions
 #'
@@ -212,74 +224,25 @@ mod_historical_process_simp_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    ## Dynamic Grouping Buckets ####
+    # could def have some better object names for the next 2 funcs
     fill_draggable_pool <- reactive({
       fill_strata_grouping_bucket(
         list_of_dfs = ldf,
         input= input
       )
-      # browser()
-      # input_codes_use <- input$sel_adm3 %||% input$sel_adm2 %||% input$sel_adm1
-      # input_ids <- c("adm3","adm2","adm1")
-      # adm_inputs <- list(input$sel_adm3 , input$sel_adm2 , input$sel_adm1)
-      # idx_not_null <- which(purrr::map_lgl(adm_inputs, ~!is.null(.x)))
-      # min_idx <- min(idx_not_null)
-      # input_id_use<- input_ids[[min_idx]]
-      #
-      # pcode_col_chr<- paste0(input_id_use,"_pcode")
-      # lbl_col_chr<- paste0(input_id_use,"_en")
-      #
-      # df_use <-  ldf[[input_id_use]]
-      # df_use_lookup <- df_use |>
-      #   dplyr::filter(
-      #     !!rlang::sym(pcode_col_chr) %in% input_codes_use
-      #   ) |>
-      #   dplyr::distinct(
-      #     !!rlang::sym(pcode_col_chr),
-      #     !!rlang::sym(lbl_col_chr)
-      #   )
-      # purrr::map(df_use_lookup[[lbl_col_chr]],
-      #            \(lbl){
-      #              tags$div(htmltools::em(lbl))
-      #            }) |>
-      #   purrr::set_names(df_use_lookup[[pcode_col_chr]])
-
-
     })
-    # output$admins_drag <- ui_draggable(number_groups = input$numb_strata_groups)
-
-
-    output$admins_drag <- shiny::renderUI({
-      # browser()
-      conditionalPanel( # move up
-        ns=ns,
-        condition= "input.analysis_level!='adm0_pcode' && input.group_strata==true",
-        dynamic_bucket_list(num_groups = as.character(input$numb_strata_groups),reservoir = fill_draggable_pool())
-
-        # sortable::bucket_list(
-        #   header = "Drag the items in any desired bucket",
-        #   group_name = "bucket_list_group",
-        #   orientation = "horizontal",
-        #
-        #   sortable::add_rank_list(
-        #     text = "All Strata (Drag from Here)",
-        #     labels = fill_draggable_pool(),
-        #     input_id = "rank_list_1"
-        #   ),
-        #   sortable::add_rank_list(
-        #     text = "add to Group 1",
-        #     labels = NULL,
-        #     input_id = "rank_list_2"
-        #   ),
-        #   sortable::add_rank_list(
-        #     text = "or Group 2",
-        #     labels = NULL,
-        #     input_id = "rank_list_3"
-        #   )
-        # )
-      )
+    observeEvent(list(input$group_strata, input$numb_strata_groups),{
+      output$admins_drag <- shiny::renderUI({
+        conditionalPanel(
+          ns=ns,
+          condition= "input.analysis_level!='adm0_pcode' && input.group_strata==true",
+          dynamic_bucket_list(
+            num_groups = as.character(input$numb_strata_groups),
+            reservoir = fill_draggable_pool())
+        )
+      })
     })
-
-
 
 
     # Update Admin Choices ####
@@ -303,7 +266,7 @@ mod_historical_process_simp_server <- function(id) {
     })
     # Group NAMES UI ####
 
-      # browser()
+    # browser()
     #   ui_create_group_names <- renderUI({
     #     ui_group_names(
     #     input=input,
@@ -409,6 +372,19 @@ mod_historical_process_simp_server <- function(id) {
     )
 
     # Process Forecast --------------------------------------------------------
+    # aggregate_forecast_strata_reactive <- reactive({
+    #   browser()
+    #   aggregate_to_strata(list_df=ldf,
+    #                       analysis_level=input$analysis_level,
+    #                       # admin_pcode_values=input$sel_adm1%||% input$sel_adm1 %||% input$sel_adm2 %||% input$sel_adm3,
+    #                       number_groups= input$numb_strata_groups,
+    #                       input=input
+    #   )
+    # })
+    output$test_bucket_test <- renderText({
+      glue::glue_collapse(input$sel_adm1 %||%input$rank_list_1,sep = ",")
+    })
+    output$test_strata_table <-  renderTable({aggregate_forecast_strata_reactive()})
 
     aggregate_forecast_reactive <- reactive({
       adm_sel_id <- paste0(
