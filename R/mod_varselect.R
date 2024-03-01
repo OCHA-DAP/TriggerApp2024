@@ -24,6 +24,23 @@ mod_varselect_ui <- function(id){
         ),
         conditionalPanel(
           ns = ns,
+          condition = "input.analysis_level =='adm0_pcode'|input.analysis_level=='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+          selectizeInput(ns("sel_adm0"),
+                         label = "Admin 0",
+                         # selected = "ET02",
+                         choices = rlang::set_names(
+                           ldf$adm0 |>
+                             dplyr::distinct(adm0_pcode, adm0_en) |>
+                             dplyr::pull(adm0_pcode),
+                           ldf$adm0 |>
+                             dplyr::distinct(adm0_pcode, adm0_en) |>
+                             dplyr::pull(adm0_en)
+                         ),
+                         multiple = T
+          )
+        ),
+        conditionalPanel(
+          ns = ns,
           condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
           selectizeInput(ns("sel_adm1"),
                          label = "Admin 1",
@@ -153,27 +170,19 @@ mod_varselect_server <- function(id){
 
 
     ## Render LT UI ####
+    # removing observeEvent...
     # observeEvent(
     #   list(input$valid_mo1, input$pub_mo1),
     #   {
         output$lt_ui <-
-          # could probably wrap this all: `sliders_ui()`
+          # could probably wrap this all: `sliders_ui()` -- not sure any more
           renderUI({
-            # browser()
+
             available_lts <-  available_lts(
               publication_months = as.numeric(input$pub_mo1),
               valid_months = as.numeric(input$valid_mo1)
             )
-            # l_lts <- adjustable_leadtimes_robust(
-            #   publication_months = as.numeric(input$pub_mo1),
-            #   valid_months = as.numeric(input$valid_mo1)
-            # )
 
-
-
-            # l_lts |>
-            # sort() |>
-            # rev() |> # reverse order testing for mental model
             available_lts |>
               purrr::imap(\(mo_tmp,lt_tmp){
                 pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
@@ -191,7 +200,7 @@ mod_varselect_server <- function(id){
                 )
               })
           })
-        # browser()
+
         return(
           list(
             analysis_level = reactive({ input$analysis_level }),
