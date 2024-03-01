@@ -1,3 +1,7 @@
+paste_varselects <-  function(l){
+  glue::glue_collapse(l,sep = ",")
+}
+
 #' load_df_forecast
 #' @description
 #' convenience function to load appropriate dataset for app development
@@ -310,6 +314,7 @@ load_pub_mo_list <- function(lt=6){
 #' }
 
 find_valid_month_interval <- function(valid_months){
+  valid_months <- as.numeric(valid_months)
   diff_lag <- valid_months-dplyr::lag(valid_months)
   idx_switch <- which(diff_lag>1)
   if(length(idx_switch)==0){
