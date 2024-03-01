@@ -76,7 +76,7 @@ get_slider_values <-  function(input,
   lts = available_lts(
     publication_months = publication_months,
     valid_months= valid_months
-    )
+  )
 
   lt_id_tags <- names(lts)
 
@@ -85,6 +85,7 @@ get_slider_values <-  function(input,
       input[[paste0("slider_", lt)]] %||% 4
     })
 }
+
 
 
 

@@ -153,16 +153,27 @@ mod_varselect_server <- function(id){
 
 
     ## Render LT UI ####
-    observeEvent(
-      list(input$valid_mo1, input$pub_mo1),ignoreInit = F,
-      {
+    # observeEvent(
+    #   list(input$valid_mo1, input$pub_mo1),
+    #   {
         output$lt_ui <-
           # could probably wrap this all: `sliders_ui()`
           renderUI({
+            # browser()
             available_lts <-  available_lts(
               publication_months = as.numeric(input$pub_mo1),
               valid_months = as.numeric(input$valid_mo1)
             )
+            # l_lts <- adjustable_leadtimes_robust(
+            #   publication_months = as.numeric(input$pub_mo1),
+            #   valid_months = as.numeric(input$valid_mo1)
+            # )
+
+
+
+            # l_lts |>
+            # sort() |>
+            # rev() |> # reverse order testing for mental model
             available_lts |>
               purrr::imap(\(mo_tmp,lt_tmp){
                 pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
@@ -171,7 +182,7 @@ mod_varselect_server <- function(id){
                 slider_default_iso <- isolate(input[[ns_id]] %||% 4)
                 sliderInput(
                   # inputId = ns(paste0("slider_", lt_tmp)),
-                  inputId = ns_id,
+                  inputId = ns(ns_id),
                   label = slider_label,
                   min = 1,
                   max = 30,
@@ -180,24 +191,64 @@ mod_varselect_server <- function(id){
                 )
               })
           })
-      }
-    )
-    # browser()
-    return(
-      list(
-        analysis_level = reactive({ input$analysis_level }),
-        admin1 = reactive({ input$sel_adm1 }),
-        admin2 = reactive({ input$sel_adm2}),
-        admin3 = reactive({ input$sel_adm3}),
-        valid_mo = reactive({ input$valid_mo1}),
-        pub_mo = reactive({ input$pub_mo1}),
-        leadtimes = reactive({
-          get_slider_values(input = input,
-                            publication_months = input$pub_mo1,
-                            valid_months  = input$valid_mo1)})
+        # browser()
+        return(
+          list(
+            analysis_level = reactive({ input$analysis_level }),
+            admin1 = reactive({ input$sel_adm1 }),
+            admin2 = reactive({ input$sel_adm2}),
+            admin3 = reactive({ input$sel_adm3}),
+            valid_mo = reactive({ input$valid_mo1}),
+            pub_mo = reactive({ input$pub_mo1}),
+            leadtimes =reactive({get_slider_values(input = input,publication_months = input$pub_mo1, valid_months = input$valid_mo1)})
+          )
+        )
+      # }
+    # )
 
-      )
-    )
+
+
+    # browser()
+
+
+        #   reactive({
+        #      thresholds_from_sliders(
+        #     input = input,
+        #     df = data_aggregated,
+        #     valid_months = as.numeric(input$valid_mo1),
+        #     publication_months = as.numeric(input$pub_mo1)
+        #   )
+        # })
+        # leadtimes = reactive({input$lt_ui})
+        # leadtimes = reactive({
+        #   get_slider_values(input = input,
+        #                     publication_months = input$pub_mo1,
+        #                     valid_months  = input$valid_mo1)})
+        # leadtimes = reactive(
+        #   {
+        #     # req(input$lt_ui)
+        #   lts = available_lts(
+        #   publication_months = as.numeric(input$pub_mo1),
+        #   valid_months= as.numeric(input$valid_mo1)
+        # )
+        #
+        # lt_id_tags <- names(lts)
+        # browser()
+        #
+        #
+        # purrr::set_names(lt_id_tags,lt_id_tags) |>
+        #   purrr::map(\(lt){
+        #     slider_val <- input[[paste0("slider_", lt)]] %||% 1000
+        #     # isolate(sli)
+        #     return(
+        #       as.numeric(slider_val)
+        #       )
+        #   })
+        # }
+        # )
+
+      # )
+    # )
 
 
   })
