@@ -17,9 +17,14 @@ app_server <- function(input, output, session) {
                           l1_inputs=w1_var_inputs,
                           l2_inputs=w2_var_inputs)
 
-  mod_historical_main_viz_server("historical_window_1",
+  w1_data_classified <- mod_historical_main_viz_server("historical_window_1",
                                  l_inputs = w1_var_inputs)
 
-  mod_historical_main_viz_server("historical_window_2",
+  w2_data_classified <- mod_historical_main_viz_server("historical_window_2",
                                  l_inputs = w2_var_inputs)
+
+  mod_combine_windows_server("combine_windows",
+                             l_w1_inputs =w1_data_classified,
+                             l_w2_inputs = w2_data_classified
+                             )
 }

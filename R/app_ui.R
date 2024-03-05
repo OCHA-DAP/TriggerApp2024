@@ -18,10 +18,21 @@ app_ui <- function(request) {
       tabPanel(
         title ="testing",
         mod_varselect_ui("window_1"),
-        mod_varselect_ui("window_2"),
-        mod_checkSelects_ui("checkSelects_1"),
+        radioButtons(
+          inputId = "multiple_windows",
+          label = "How many windows?",
+          choices = c("1","2"),
+          selected = "2",
+          inline=T),
         mod_historical_main_viz_ui("historical_window_1"),
-        mod_historical_main_viz_ui("historical_window_2")
+
+        mod_checkSelects_ui("checkSelects_1"),
+        conditionalPanel(condition = "input.multiple_windows=='2'",
+                         mod_varselect_ui("window_2"),
+                         mod_historical_main_viz_ui("historical_window_2"),
+                         mod_combine_windows_ui("combine_windows")
+                         )
+
       )
 
     )
