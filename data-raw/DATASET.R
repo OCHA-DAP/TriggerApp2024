@@ -24,3 +24,4 @@ migrate_eth_parquets <-  function(path){
 
 migrate_eth_parquets(path = "../ds-aa-eth-drought/_targets/objects/ldf_ecmwf_zonal")
 
+df <- arrow::read_parquet("data/df_eth_mars_zonal_adm0.parquet")

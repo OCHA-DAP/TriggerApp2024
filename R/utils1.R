@@ -499,6 +499,10 @@ ui_update_admin <-  function(session=session,
 
 }
 
+
+
+
+
 filter_aoi <-  function(list_df,
                          analysis_level,
                          admin_pcode_name,
@@ -582,7 +586,9 @@ summarise_forecast_temporal <- function(df,
     ) |>
     dplyr::mutate(
       yr_date = lubridate::floor_date(pub_date, "year")
-    )}
+    )
+  }
+
 
 
 

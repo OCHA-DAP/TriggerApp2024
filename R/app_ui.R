@@ -19,8 +19,9 @@ app_ui <- function(request) {
         title ="testing",
         mod_varselect_ui("window_1"),
         mod_varselect_ui("window_2"),
-        mod_checkSelects_ui("checkSelects_1")
-
+        mod_checkSelects_ui("checkSelects_1"),
+        mod_historical_main_viz_ui("historical_window_1"),
+        mod_historical_main_viz_ui("historical_window_2")
       )
 
     )

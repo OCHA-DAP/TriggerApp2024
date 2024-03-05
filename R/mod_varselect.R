@@ -204,12 +204,31 @@ mod_varselect_server <- function(id){
         return(
           list(
             analysis_level = reactive({ input$analysis_level }),
+            admin0= reactive({input$sel_adm0}),
             admin1 = reactive({ input$sel_adm1 }),
             admin2 = reactive({ input$sel_adm2}),
             admin3 = reactive({ input$sel_adm3}),
             valid_mo = reactive({ input$valid_mo1}),
             pub_mo = reactive({ input$pub_mo1}),
-            leadtimes =reactive({get_slider_values(input = input,publication_months = input$pub_mo1, valid_months = input$valid_mo1)})
+            leadtimes =reactive({get_slider_values(input = input,publication_months = input$pub_mo1, valid_months = input$valid_mo1)}),
+            df_filt= reactive({
+              # can remove this step if i just rename analysis_level choices to not include _pcode
+              df_id <- stringr::str_remove(input$analysis_level,"_pcode")
+              df_sel <- ldf[[df_id]]
+
+              df_sel_adm <- df_sel |>
+                dplyr::filter(
+                  if(!is.null(input$sel_adm0)) adm0_pcode %in% input$sel_adm0 else TRUE,
+                  if(!is.null(input$sel_adm1)) adm1_pcode %in% input$sel_adm1 else TRUE,
+                  if(!is.null(input$sel_adm2)) adm2_pcode %in% input$sel_adm2 else TRUE,
+                  if(!is.null(input$sel_adm3)) adm3_pcode %in% input$sel_adm3 else TRUE
+                       ) |>
+                # separating this filter for trouble shooting. Should be able to combine
+                dplyr::filter(
+                  pub_month %in% input$pub_mo1,
+                  valid_month %in% input$valid_mo1
+                ) # could consider adding the lts here? let's just see if this works
+            })
           )
         )
       # }
