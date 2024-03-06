@@ -16,8 +16,8 @@ CODAB_FP = file.path(
 )
 
 st_layers(CODAB_FP)
-admin_layer_names <- paste0("eth_admbnda_adm",1:3,"_csa_bofedb_2021")
-lgdf
+admin_layer_names <- c("eth_admbnda_adm0_csa_bofedb_itos_2021",paste0("eth_admbnda_adm",1:3,"_csa_bofedb_2021"))
+
 # loop through layers clean up names, calc area of each row geom.
 # likely someone will want a map viz added at some point to dashboard therefore..
 # `lgdf` object can be used to generate it.

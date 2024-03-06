@@ -7,6 +7,7 @@
 app_server <- function(input, output, session) {
   gghdx::load_source_sans_3()
   ldf <- load_df_forecast(dataset = "mars_eth")
+  df_area_lookup <- arrow::read_parquet(file.path("data","df_eth_admin_area_lookup.parquet"))
   # mod_historical_analysis_server("historical_analysis_1")
   # mod_historical_process_simp_server("historical_process_simp_1")
   # browser()

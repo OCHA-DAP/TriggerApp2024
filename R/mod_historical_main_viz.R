@@ -26,13 +26,30 @@ mod_historical_main_viz_server <- function(id,l_inputs){
     # this is how you can VIEW reactives passeed from another module
     ldf_historical <-
       reactive({
-        # browser()
       # ldf_historical <-
-        run_thresholding(df = l_inputs$df_filt(),valid_months = l_inputs$valid_mo(),leadtimes = l_inputs$leadtimes(),analysis_level = l_inputs$analysis_level())
+        run_thresholding(df = l_inputs$df_filt(),
+                         valid_months = l_inputs$valid_mo(),
+                         leadtimes = l_inputs$leadtimes(),
+                         analysis_level = l_inputs$analysis_level()
+                         )
     })
+    # observe({
+    #   if(
+    #     length(unique(l_inputs$df_filt()[[analysis_level]]))>1
+    #   ){
+    #     browser()
+    #     ldf_historical
+    #   }
+    #
+    # })
 
     output$tbl_module_test <- renderTable({
-      ldf_historical()$df_thresholds
+        dplyr::bind_rows(
+          ldf_historical()$thresholds,
+          ldf_historical()$thresholds_combined |> dplyr::select(-dplyr::starts_with("adm_comb"))
+        )
+
+
       })
 
     # would suspect that this being added to reactive above woud improve performance, but not sure

@@ -1,5 +1,6 @@
 Package: TriggerApp2024
 Title: Drought Triggers: Seasonal Forecast
+DisplayMode: Showcase
 Version: 0.0.0.9000
 Authors@R: 
     person("Zack", "Arno", , "zackarno@gmail.com", role = c("cre", "aut"))
