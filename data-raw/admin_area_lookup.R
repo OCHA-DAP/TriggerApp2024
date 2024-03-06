@@ -15,8 +15,9 @@ CODAB_FP = file.path(
   "eth_adm_csa_bofedb_2021_shp"
 )
 
+st_layers(CODAB_FP)
 admin_layer_names <- paste0("eth_admbnda_adm",1:3,"_csa_bofedb_2021")
-
+lgdf
 # loop through layers clean up names, calc area of each row geom.
 # likely someone will want a map viz added at some point to dashboard therefore..
 # `lgdf` object can be used to generate it.
@@ -24,7 +25,7 @@ lgdf <- set_names(admin_layer_names,admin_layer_names) |>
   map(
     \(lyr_nm_tmp){
       st_read(CODAB_FP,
-              layer = "eth_admbnda_adm3_csa_bofedb_2021") %>%
+              layer = lyr_nm_tmp) %>%
         clean_names() %>%
         mutate(
           area = as.numeric(st_area(.))
@@ -34,6 +35,7 @@ lgdf <- set_names(admin_layer_names,admin_layer_names) |>
         )
     }
   )
+
 
 # loop through list of sf objects and put the areas in long format and bind together
 df_area_lookup <- lgdf |>
@@ -46,12 +48,14 @@ df_area_lookup <- lgdf |>
   gdf_tmp |>
     st_drop_geometry() |>
     select(starts_with(df_id),area) |>
+    rename_with(.cols = matches(df_id),.fn = function(nm_tmp) str_replace(nm_tmp,"adm\\d","adm")) |>
     mutate(
       admin_level = df_id
     )
   }
   ) |>
   list_rbind()
+
 
 # write as parquet to data folder
 df_area_lookup |>
