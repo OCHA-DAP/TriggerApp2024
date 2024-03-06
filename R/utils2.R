@@ -1,3 +1,57 @@
+
+run_thresholding <-  function(df,
+                                 valid_months,
+                                 leadtimes,
+                                 analysis_level
+                                 ){
+
+  df_summarised <- summarise_forecast_temporal2(
+    df = df,
+    valid_month_arg = valid_months
+    )
+
+  df_thresholds <- threshold_values(
+    df= df_summarised,
+    slider_rps =leadtimes
+    )
+
+  df_historical_classified <-  classify_historical(
+    df = df_summarised,
+    thresh_table = df_thresholds
+  )
+
+  df_yearly_activation_lgl <- df_historical_classified |>
+    # dplyr::group_by(!!!rlang::syms(l_inputs$analysis_level()), yr_date) |>
+    dplyr::group_by(
+      dplyr::across(
+        dplyr::any_of(
+          dplyr::matches("adm\\d_[pe]"))),
+      yr_date) |>
+    dplyr::summarise(
+      lgl_flag = any(lgl_flag),
+      .groups = "drop_last"
+    )
+
+  df_joint_activation_rates <- df_yearly_activation_lgl |>
+    dplyr::summarise(
+      overall_activation = mean(lgl_flag, na.rm = T),
+      overall_rp = 1 / overall_activation
+    )
+  df_thresholds <- df_thresholds |>
+    dplyr::left_join(df_joint_activation_rates, by =analysis_level)
+  return(
+    list(
+      thresholds= df_thresholds,
+      historical_classified =df_historical_classified,
+      yearly_flags_lgl = df_yearly_activation_lgl
+    )
+  )
+
+}
+
+
+
+
 # attempting to deprecate:
 # filter_aoi, aggregate_forecast, summarise_temporal
 # with new modular approach....
