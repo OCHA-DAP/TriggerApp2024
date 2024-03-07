@@ -23,14 +23,22 @@ mod_historical_main_viz_server <- function(id,l_inputs){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
+    # observe({
+    # if(length(l_inputs$admin1())>1){
+    #
+    #     browser()
+    # }
+    # })
+
     # this is how you can VIEW reactives passeed from another module
     ldf_historical <-
       reactive({
       # ldf_historical <-
-        run_thresholding(df = l_inputs$df_filt(),
-                         valid_months = l_inputs$valid_mo(),
-                         leadtimes = l_inputs$leadtimes(),
-                         analysis_level = l_inputs$analysis_level()
+        run_thresholding(
+          df = l_inputs$df_filt(),
+          valid_months = l_inputs$valid_mo(),
+          leadtimes = l_inputs$leadtimes(),
+          analysis_level = l_inputs$analysis_level()
                          )
     })
     # observe({
@@ -46,7 +54,8 @@ mod_historical_main_viz_server <- function(id,l_inputs){
     output$tbl_module_test <- renderTable({
         dplyr::bind_rows(
           ldf_historical()$thresholds,
-          ldf_historical()$thresholds_combined |> dplyr::select(-dplyr::starts_with("adm_comb"))
+          ldf_historical()$thresholds_combined |>
+            dplyr::select(-dplyr::starts_with("adm_comb"))
         )
 
 

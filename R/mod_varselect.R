@@ -10,102 +10,102 @@
 mod_varselect_ui <- function(id){
   ns <- NS(id)
   tagList(
-      inputPanel(
-        selectInput(
-          inputId = ns("analysis_level"),
-          label = "Select Analysis Level",
-          choices = c(
-            Country = "adm0_pcode",
-            `Admin 1` = "adm1_pcode",
-            `Admin 2` = "adm2_pcode",
-            `Admin 3` = "adm3_pcode"
-          ),
-          selected = "adm0_pcode"
+    inputPanel(
+      selectInput(
+        inputId = ns("analysis_level"),
+        label = "Select Analysis Level",
+        choices = c(
+          Country = "adm0_pcode",
+          `Admin 1` = "adm1_pcode",
+          `Admin 2` = "adm2_pcode",
+          `Admin 3` = "adm3_pcode"
         ),
-        conditionalPanel(
-          ns = ns,
-          condition = "input.analysis_level =='adm0_pcode'|input.analysis_level=='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-          selectizeInput(ns("sel_adm0"),
-                         label = "Admin 0",
-                         # selected = "ET02",
-                         choices = rlang::set_names(
-                           ldf$adm0 |>
-                             dplyr::distinct(adm0_pcode, adm0_en) |>
-                             dplyr::pull(adm0_pcode),
-                           ldf$adm0 |>
-                             dplyr::distinct(adm0_pcode, adm0_en) |>
-                             dplyr::pull(adm0_en)
-                         ),
-                         multiple = T
-          )
-        ),
-        conditionalPanel(
-          ns = ns,
-          condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-          selectizeInput(ns("sel_adm1"),
-                         label = "Admin 1",
-                         # selected = "ET02",
-                         choices = rlang::set_names(
-                           ldf$adm1 |>
-                             dplyr::distinct(adm1_pcode, adm1_en) |>
-                             dplyr::pull(adm1_pcode),
-                           ldf$adm1 |>
-                             dplyr::distinct(adm1_pcode, adm1_en) |>
-                             dplyr::pull(adm1_en)
-                         ),
-                         multiple = T
-          )
-        ),
-        conditionalPanel(
-          ns = ns,
-          condition = "input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-          selectizeInput(
-            ns("sel_adm2"),
-            label = "Admin 2",
-            # selected= ,
-            choices = "",
-            multiple = T
-          )
-        ),
-        conditionalPanel(
-          ns = ns,
-          condition = "input.analysis_level=='adm3_pcode'",
-          selectizeInput(
-            ns("sel_adm3"),
-            label = "Admin 3",
-            choices = "",
-            multiple = T
-          )
+        selected = "adm0_pcode"
+      ),
+      conditionalPanel(
+        ns = ns,
+        condition = "input.analysis_level =='adm0_pcode'|input.analysis_level=='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+        selectizeInput(ns("sel_adm0"),
+                       label = "Admin 0",
+                       choices = rlang::set_names(
+                         ldf$adm0 |>
+                           dplyr::distinct(adm0_pcode, adm0_en) |>
+                           dplyr::pull(adm0_pcode),
+                         ldf$adm0 |>
+                           dplyr::distinct(adm0_pcode, adm0_en) |>
+                           dplyr::pull(adm0_en)
+                       ),
+                       selected= "ET",
+                       multiple = T
         )
       ),
-      shinyWidgets::checkboxGroupButtons(
-        inputId = ns("valid_mo1"), # time of interest
-        choices = c(1:12) |>
-          rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
-        selected = c(4,5),
-        # inline=T,
-        label = "Step 1: Select time period/window of concern"
+      conditionalPanel(
+        ns = ns,
+        condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+        selectizeInput(ns("sel_adm1"),
+                       label = "Admin 1",
+                       # selected = "ET02",
+                       choices = rlang::set_names(
+                         ldf$adm1 |>
+                           dplyr::distinct(adm1_pcode, adm1_en) |>
+                           dplyr::pull(adm1_pcode),
+                         ldf$adm1 |>
+                           dplyr::distinct(adm1_pcode, adm1_en) |>
+                           dplyr::pull(adm1_en)
+                       ),
+                       multiple = T
+        )
       ),
-      shinyWidgets::checkboxGroupButtons(
-        inputId = ns("pub_mo1"),
-        label = "2. Available months to monitor from:",
-        choices = c(1:12) |>
-          rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
-        selected = c(11,12,1,2, 3, 4),
+      conditionalPanel(
+        ns = ns,
+        condition = "input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+        selectizeInput(
+          ns("sel_adm2"),
+          label = "Admin 2",
+          # selected= ,
+          choices = "",
+          multiple = T
+        )
       ),
+      conditionalPanel(
+        ns = ns,
+        condition = "input.analysis_level=='adm3_pcode'",
+        selectizeInput(
+          ns("sel_adm3"),
+          label = "Admin 3",
+          choices = "",
+          multiple = T
+        )
+      )
+    ),
+    shinyWidgets::checkboxGroupButtons(
+      inputId = ns("valid_mo1"), # time of interest
+      choices = c(1:12) |>
+        rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
+      selected = c(4,5),
+      # inline=T,
+      label = "Step 1: Select time period/window of concern"
+    ),
+    shinyWidgets::checkboxGroupButtons(
+      inputId = ns("pub_mo1"),
+      label = "2. Available months to monitor from:",
+      choices = c(1:12) |>
+        rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
+      selected = c(11,12,1,2, 3, 4),
+    ),
 
-      # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
-      fluidRow(
-        column(
-          width = 6,
-          div(
-            class = "label-left",
-            uiOutput(ns("lt_ui"))
-          )
+    # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
+    fluidRow(
+      column(
+        width = 6,
+        div(
+          class = "label-left",
+          uiOutput(ns("lt_ui"))
         )
-        # might need another col to add up to 12?
       )
-      )
+      # might need another col to add up to 12?
+    )
+  )
 }
 
 #' varselect Server Functions
@@ -174,64 +174,71 @@ mod_varselect_server <- function(id){
     # observeEvent(
     #   list(input$valid_mo1, input$pub_mo1),
     #   {
-        output$lt_ui <-
-          # could probably wrap this all: `sliders_ui()` -- not sure any more
-          renderUI({
+    output$lt_ui <-
+      # could probably wrap this all: `sliders_ui()` -- not sure any more
+      renderUI({
 
-            available_lts <-  available_lts(
-              publication_months = as.numeric(input$pub_mo1),
-              valid_months = as.numeric(input$valid_mo1)
-            )
-
-            available_lts |>
-              purrr::imap(\(mo_tmp,lt_tmp){
-                pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
-                slider_label <- glue::glue("{pub_mo_slider_chr} (LT: {lt_tmp})")
-                ns_id <- paste0("slider_", lt_tmp)
-                slider_default_iso <- isolate(input[[ns_id]] %||% 4)
-                sliderInput(
-                  # inputId = ns(paste0("slider_", lt_tmp)),
-                  inputId = ns(ns_id),
-                  label = slider_label,
-                  min = 1,
-                  max = 30,
-                  value = slider_default_iso,
-                  width = "100%" # Adjust min, max, and value as needed
-                )
-              })
-          })
-
-        return(
-          list(
-            analysis_level = reactive({ input$analysis_level }),
-            admin0= reactive({input$sel_adm0}),
-            admin1 = reactive({ input$sel_adm1 }),
-            admin2 = reactive({ input$sel_adm2}),
-            admin3 = reactive({ input$sel_adm3}),
-            valid_mo = reactive({ input$valid_mo1}),
-            pub_mo = reactive({ input$pub_mo1}),
-            leadtimes =reactive({get_slider_values(input = input,publication_months = input$pub_mo1, valid_months = input$valid_mo1)}),
-            df_filt= reactive({
-              # can remove this step if i just rename analysis_level choices to not include _pcode
-              df_id <- stringr::str_remove(input$analysis_level,"_pcode")
-              df_sel <- ldf[[df_id]]
-
-              df_sel_adm <- df_sel |>
-                dplyr::filter(
-                  if(!is.null(input$sel_adm0)) adm0_pcode %in% input$sel_adm0 else TRUE,
-                  if(!is.null(input$sel_adm1)) adm1_pcode %in% input$sel_adm1 else TRUE,
-                  if(!is.null(input$sel_adm2)) adm2_pcode %in% input$sel_adm2 else TRUE,
-                  if(!is.null(input$sel_adm3)) adm3_pcode %in% input$sel_adm3 else TRUE
-                       ) |>
-                # separating this filter for trouble shooting. Should be able to combine
-                dplyr::filter(
-                  pub_month %in% input$pub_mo1,
-                  valid_month %in% input$valid_mo1
-                ) # could consider adding the lts here? let's just see if this works
-            })
-          )
+        available_lts <-  available_lts(
+          publication_months = as.numeric(input$pub_mo1),
+          valid_months = as.numeric(input$valid_mo1)
         )
-      # }
+
+        available_lts |>
+          purrr::imap(\(mo_tmp,lt_tmp){
+            pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
+            slider_label <- glue::glue("{pub_mo_slider_chr} (LT: {lt_tmp})")
+            ns_id <- paste0("slider_", lt_tmp)
+            slider_default_iso <- isolate(input[[ns_id]] %||% 4)
+            sliderInput(
+              # inputId = ns(paste0("slider_", lt_tmp)),
+              inputId = ns(ns_id),
+              label = slider_label,
+              min = 1,
+              max = 30,
+              value = slider_default_iso,
+              width = "100%" # Adjust min, max, and value as needed
+            )
+          })
+      })
+    spatial_filter_keys <- reactive({
+      get_spatial_filter_keys(adm0_input = input$sel_adm0,
+                              adm1_input =input$sel_adm1 ,
+                              adm2_input = input$sel_adm2,
+                              adm3_input =input$sel_adm3)
+    })
+
+
+
+    return(
+      list(
+        analysis_level = reactive({ input$analysis_level }),
+        admin0= reactive({input$sel_adm0}),
+        admin1 = reactive({ input$sel_adm1 }),
+        admin2 = reactive({ input$sel_adm2}),
+        admin3 = reactive({ input$sel_adm3}),
+        valid_mo = reactive({ input$valid_mo1}),
+        pub_mo = reactive({ input$pub_mo1}),
+        leadtimes =reactive({get_slider_values(input = input,publication_months = input$pub_mo1, valid_months = input$valid_mo1)}),
+        filter_keys = reactive({spatial_filter_keys()}),
+        df_filt= reactive({
+          # can remove this step if i just rename analysis_level choices to not include _pcode
+          df_id <- stringr::str_remove(input$analysis_level,"_pcode")
+          df_sel <- ldf[[df_id]]
+
+          df_sel_adm <- df_sel |>
+            dplyr::filter(
+              !!rlang::sym(
+                spatial_filter_keys()$filter_col) %in% spatial_filter_keys()$filter_value
+            ) |>
+            # separating this filter for trouble shooting. Should be able to combine
+            dplyr::filter(
+              pub_month %in% input$pub_mo1,
+              valid_month %in% input$valid_mo1
+            ) # could consider adding the lts here? let's just see if this works
+        })
+      )
+    )
+    # }
     # )
 
 
@@ -239,43 +246,43 @@ mod_varselect_server <- function(id){
     # browser()
 
 
-        #   reactive({
-        #      thresholds_from_sliders(
-        #     input = input,
-        #     df = data_aggregated,
-        #     valid_months = as.numeric(input$valid_mo1),
-        #     publication_months = as.numeric(input$pub_mo1)
-        #   )
-        # })
-        # leadtimes = reactive({input$lt_ui})
-        # leadtimes = reactive({
-        #   get_slider_values(input = input,
-        #                     publication_months = input$pub_mo1,
-        #                     valid_months  = input$valid_mo1)})
-        # leadtimes = reactive(
-        #   {
-        #     # req(input$lt_ui)
-        #   lts = available_lts(
-        #   publication_months = as.numeric(input$pub_mo1),
-        #   valid_months= as.numeric(input$valid_mo1)
-        # )
-        #
-        # lt_id_tags <- names(lts)
-        # browser()
-        #
-        #
-        # purrr::set_names(lt_id_tags,lt_id_tags) |>
-        #   purrr::map(\(lt){
-        #     slider_val <- input[[paste0("slider_", lt)]] %||% 1000
-        #     # isolate(sli)
-        #     return(
-        #       as.numeric(slider_val)
-        #       )
-        #   })
-        # }
-        # )
+    #   reactive({
+    #      thresholds_from_sliders(
+    #     input = input,
+    #     df = data_aggregated,
+    #     valid_months = as.numeric(input$valid_mo1),
+    #     publication_months = as.numeric(input$pub_mo1)
+    #   )
+    # })
+    # leadtimes = reactive({input$lt_ui})
+    # leadtimes = reactive({
+    #   get_slider_values(input = input,
+    #                     publication_months = input$pub_mo1,
+    #                     valid_months  = input$valid_mo1)})
+    # leadtimes = reactive(
+    #   {
+    #     # req(input$lt_ui)
+    #   lts = available_lts(
+    #   publication_months = as.numeric(input$pub_mo1),
+    #   valid_months= as.numeric(input$valid_mo1)
+    # )
+    #
+    # lt_id_tags <- names(lts)
+    # browser()
+    #
+    #
+    # purrr::set_names(lt_id_tags,lt_id_tags) |>
+    #   purrr::map(\(lt){
+    #     slider_val <- input[[paste0("slider_", lt)]] %||% 1000
+    #     # isolate(sli)
+    #     return(
+    #       as.numeric(slider_val)
+    #       )
+    #   })
+    # }
+    # )
 
-      # )
+    # )
     # )
 
 

@@ -1,3 +1,49 @@
+#' get_spatial_filter_keys
+#'
+#' @param adm0_input
+#' @param adm1_input
+#' @param adm2_input
+#' @param adm3_input
+#'
+#' @return
+#' @export
+#'
+#' @examples \dontrun{
+#' get_spatial_filter_keys(adm0_input = "a",
+#'                         adm1_input = "b",
+#'                         adm2_input = "c",
+#'                         adm3_input = NULL)
+
+get_spatial_filter_keys <-  function(adm0_input,
+                                    adm1_input,
+                                    adm2_input,
+                                    adm3_input){
+  # could probably combine 2 lists into 1 named list... let's just test this first
+  filter_drill_downs <- list(
+    adm3_pcode=adm3_input,
+    adm2_pcode=adm2_input,
+    adm1_pcode=adm1_input,
+    adm0_pcode= adm0_input
+  )
+
+  filter_drill_down_columns <-  c("adm3_pcode",
+                                  "adm2_pcode",
+                                  "adm1_pcode",
+                                  "adm0_pcode")
+  idx_first_non_null <- which(purrr::map_lgl(filter_drill_downs, ~!is.null(.x)))[1]
+
+  filter_value <-  filter_drill_downs[[idx_first_non_null]]
+  filter_col <-  filter_drill_down_columns[idx_first_non_null]
+  return(
+    list(
+      filter_col=filter_col,
+      filter_value=filter_value
+    )
+
+  )
+}
+
+
 
 run_thresholding <-  function(df,
                                  valid_months,
