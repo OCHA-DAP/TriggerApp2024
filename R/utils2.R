@@ -15,9 +15,9 @@
 #'                         adm3_input = NULL)
 
 get_spatial_filter_keys <-  function(adm0_input,
-                                    adm1_input,
-                                    adm2_input,
-                                    adm3_input){
+                                     adm1_input,
+                                     adm2_input,
+                                     adm3_input){
   # could probably combine 2 lists into 1 named list... let's just test this first
   filter_drill_downs <- list(
     adm3_pcode=adm3_input,
@@ -36,8 +36,8 @@ get_spatial_filter_keys <-  function(adm0_input,
   filter_col <-  filter_drill_down_columns[idx_first_non_null]
   return(
     list(
-      filter_col=filter_col,
-      filter_value=filter_value
+      name=filter_col,
+      value=filter_value
     )
 
   )
@@ -46,22 +46,22 @@ get_spatial_filter_keys <-  function(adm0_input,
 
 
 run_thresholding <-  function(df,
-                                 valid_months,
-                                 leadtimes,
-                                 analysis_level
-                                 ){
+                              valid_months,
+                              leadtimes,
+                              analysis_level
+){
 
 
   df_summarised <- summarise_forecast_temporal2(
     df = df,
     valid_month_arg = valid_months
-    )
+  )
 
 
   df_thresholds <- threshold_values(
     df= df_summarised,
     slider_rps =leadtimes
-    )
+  )
 
 
   df_historical_classified <-  classify_historical(
@@ -91,10 +91,10 @@ run_thresholding <-  function(df,
     dplyr::left_join(df_joint_activation_rates)
 
   ret <- list(
-      thresholds= df_thresholds,
-      historical_classified =df_historical_classified,
-      yearly_flags_lgl = df_yearly_activation_lgl
-    )
+    thresholds= df_thresholds,
+    historical_classified =df_historical_classified,
+    yearly_flags_lgl = df_yearly_activation_lgl
+  )
 
   if(length(unique(df_summarised[[analysis_level]]))>1){
     # if(
@@ -153,8 +153,8 @@ run_thresholding <-  function(df,
 #' @examples
 
 calc_weights <- function(df,
-                        df_area_lookup=df_area_lookup,
-                        analysis_level){
+                         df_area_lookup=df_area_lookup,
+                         analysis_level){
 
   #' silly string wrangling which should be removed by refactoring earlier
   # analysis_level = "adm1_pcode"
@@ -231,7 +231,7 @@ union_forecast_to_strata <- function(df,df_area,analysis_level){
 
 
   # df_sel_adm <-
-    df <- ldf$adm1 |>
+  df <- ldf$adm1 |>
     dplyr::filter(
       if(!is.null(input.sel_adm1)) adm1_pcode %in% input.sel_adm1 else TRUE,
     ) |>
@@ -244,7 +244,7 @@ union_forecast_to_strata <- function(df,df_area,analysis_level){
   df_summarised <- summarise_forecast_temporal2(
     df = df,
     valid_month_arg = c(5,6,7)
-    )
+  )
 
 
 
@@ -257,7 +257,7 @@ union_forecast_to_strata <- function(df,df_area,analysis_level){
   df_weights <- df_area |>
     subset_area_lookup(
       analysis_level = analysis_level_id
-      ) |>
+    ) |>
     dplyr::filter(
       !!rlang::sym(analysis_level) %in% unique(df_summarised$adm1_pcode)
     ) |>
@@ -281,11 +281,11 @@ union_forecast_to_strata <- function(df,df_area,analysis_level){
     dplyr::left_join(
       df_area_sub
     )
-    dplyr::group_by(
-      yr_date,
-      pub_date,
-      lt
-    ) |>
+  dplyr::group_by(
+    yr_date,
+    pub_date,
+    lt
+  ) |>
     dplyr::summarise(
       value = weighted.mean()
     )
@@ -385,6 +385,41 @@ threshold_values <- function(df,slider_rps){
       }
     )
   purrr::reduce(l_quantile_thresholds,dplyr::left_join)
+
+
+}
+
+
+
+gt_style_thresh_table <- function(gt_ob,table_type){
+  gt_num_formatted <- gt_ob |>
+    gt::fmt_percent(columns = "overall_activation") |>
+    gt::fmt_number(
+      columns = c(dplyr::any_of(c("0", "1", "2", "3", "4", "5", "6")), "overall_rp"),
+      decimals = 1
+    ) |>
+    gt::cols_hide(columns = ends_with("_pcode"))
+
+  if(table_type == "strata"){
+    ret_gt <- gt_num_formatted |>
+      gt::tab_spanner(
+        columns = dplyr::any_of(as.character(c(0:6))),
+        label = "Thresholds (mm) for different leadtimes based on selected RPs",
+      ) |>
+      gt::tab_spanner(
+        columns = dplyr::ends_with("_en"),
+        label = "Geography"
+      ) |>
+      gt::tab_spanner(
+        columns = dplyr::starts_with("overall_"),
+        label = "Probability of activation in any leadtime"
+      )
+  }
+  if(table_type=="combined"){
+    ret_gt <- gt_num_formatted |>
+      gt::tab_options(column_labels.hidden = TRUE)
+  }
+  return(ret_gt)
 
 
 }
