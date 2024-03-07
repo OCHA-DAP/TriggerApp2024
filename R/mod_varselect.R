@@ -42,18 +42,12 @@ mod_varselect_ui <- function(id){
       conditionalPanel(
         ns = ns,
         condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-        selectizeInput(ns("sel_adm1"),
-                       label = "Admin 1",
-                       # selected = "ET02",
-                       choices = rlang::set_names(
-                         ldf$adm1 |>
-                           dplyr::distinct(adm1_pcode, adm1_en) |>
-                           dplyr::pull(adm1_pcode),
-                         ldf$adm1 |>
-                           dplyr::distinct(adm1_pcode, adm1_en) |>
-                           dplyr::pull(adm1_en)
-                       ),
-                       multiple = T
+        selectizeInput(
+          ns("sel_adm1"),
+          label = "Admin 1",
+          choices = "",
+          selected = "",
+          multiple = T
         )
       ),
       conditionalPanel(
@@ -64,6 +58,7 @@ mod_varselect_ui <- function(id){
           label = "Admin 2",
           # selected= ,
           choices = "",
+          selected = "",
           multiple = T
         )
       ),
@@ -115,7 +110,17 @@ mod_varselect_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     # Update Admin Choices ####
-    # update available choices for admin 2 based on admin 1 selection
+    # update available choices for admin 1 based on admin 0 selection
+    observeEvent(input$sel_adm0, {
+      ui_update_admin(
+        session,
+        input,
+        list_df = ldf,
+        admin_level_choices = "adm1"
+
+      )
+    })
+
     observeEvent(input$sel_adm1, {
       ui_update_admin(
         session,
@@ -201,13 +206,14 @@ mod_varselect_server <- function(id){
           })
       })
     spatial_filter_keys <- reactive({
+
       get_spatial_filter_keys(adm0_input = input$sel_adm0,
                               adm1_input =input$sel_adm1 ,
                               adm2_input = input$sel_adm2,
-                              adm3_input =input$sel_adm3)
+                              adm3_input =input$sel_adm3,
+                              analysis_level=input$analysis_level
+                              )
     })
-
-
 
     return(
       list(
@@ -218,8 +224,10 @@ mod_varselect_server <- function(id){
         admin3 = reactive({ input$sel_adm3}),
         valid_mo = reactive({ input$valid_mo1}),
         pub_mo = reactive({ input$pub_mo1}),
-        leadtimes =reactive({get_slider_values(input = input,publication_months = input$pub_mo1, valid_months = input$valid_mo1)}),
-        filter_keys = reactive({spatial_filter_keys()}),
+        leadtimes =reactive({get_slider_values(input = input,
+                                               publication_months = input$pub_mo1,
+                                               valid_months = input$valid_mo1)}),
+        spatial_filter_keys = reactive({spatial_filter_keys()}),
         df_filt= reactive({
           # can remove this step if i just rename analysis_level choices to not include _pcode
           df_id <- stringr::str_remove(input$analysis_level,"_pcode")
@@ -227,8 +235,8 @@ mod_varselect_server <- function(id){
 
           df_sel_adm <- df_sel |>
             dplyr::filter(
-              !!rlang::sym(spatial_filter_keys()$filter_col) %in%
-                spatial_filter_keys()$filter_value
+              !!rlang::sym(spatial_filter_keys()$name) %in%
+                spatial_filter_keys()$value
             ) |>
             # separating this filter for trouble shooting. Should be able to combine
             dplyr::filter(
@@ -238,54 +246,6 @@ mod_varselect_server <- function(id){
         })
       )
     )
-    # }
-    # )
-
-
-
-    # browser()
-
-
-    #   reactive({
-    #      thresholds_from_sliders(
-    #     input = input,
-    #     df = data_aggregated,
-    #     valid_months = as.numeric(input$valid_mo1),
-    #     publication_months = as.numeric(input$pub_mo1)
-    #   )
-    # })
-    # leadtimes = reactive({input$lt_ui})
-    # leadtimes = reactive({
-    #   get_slider_values(input = input,
-    #                     publication_months = input$pub_mo1,
-    #                     valid_months  = input$valid_mo1)})
-    # leadtimes = reactive(
-    #   {
-    #     # req(input$lt_ui)
-    #   lts = available_lts(
-    #   publication_months = as.numeric(input$pub_mo1),
-    #   valid_months= as.numeric(input$valid_mo1)
-    # )
-    #
-    # lt_id_tags <- names(lts)
-    # browser()
-    #
-    #
-    # purrr::set_names(lt_id_tags,lt_id_tags) |>
-    #   purrr::map(\(lt){
-    #     slider_val <- input[[paste0("slider_", lt)]] %||% 1000
-    #     # isolate(sli)
-    #     return(
-    #       as.numeric(slider_val)
-    #       )
-    #   })
-    # }
-    # )
-
-    # )
-    # )
-
-
   })
 }
 

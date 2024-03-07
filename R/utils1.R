@@ -472,6 +472,7 @@ ui_update_admin <-  function(session=session,
                              input=input,
                              list_df,
                              admin_level_choices = "adm2"
+
                              ){
 
   update_id <- paste0("sel_",admin_level_choices)
@@ -490,10 +491,15 @@ ui_update_admin <-  function(session=session,
   updated_choices <- rlang::set_names(df_ret[[update_pcode]],
                           df_ret[[update_en]])
 
-  updateSelectizeInput(session,
-                       inputId = update_id,
-                       choices = updated_choices
-  )
+
+    updateSelectizeInput(session,
+                         inputId = update_id,
+                         choices = updated_choices
+                         # selected= updated_choices[1] # kinda works.
+    )
+
+
+
   # return(ret)
 
 

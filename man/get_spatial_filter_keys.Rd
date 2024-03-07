@@ -4,7 +4,13 @@
 \alias{get_spatial_filter_keys}
 \title{get_spatial_filter_keys}
 \usage{
-get_spatial_filter_keys(adm0_input, adm1_input, adm2_input, adm3_input)
+get_spatial_filter_keys(
+  adm0_input,
+  adm1_input,
+  adm2_input,
+  adm3_input,
+  analysis_level
+)
 }
 \arguments{
 \item{adm3_input}{}
