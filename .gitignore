@@ -1,3 +1,6 @@
 .Rproj.user
 data/*
 inst/app/www/*
+
+# made this folder to hold temporary drawing/design ideas
+.design_scrap/*

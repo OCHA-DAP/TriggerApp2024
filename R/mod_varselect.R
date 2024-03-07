@@ -227,8 +227,8 @@ mod_varselect_server <- function(id){
 
           df_sel_adm <- df_sel |>
             dplyr::filter(
-              !!rlang::sym(
-                spatial_filter_keys()$filter_col) %in% spatial_filter_keys()$filter_value
+              !!rlang::sym(spatial_filter_keys()$filter_col) %in%
+                spatial_filter_keys()$filter_value
             ) |>
             # separating this filter for trouble shooting. Should be able to combine
             dplyr::filter(
