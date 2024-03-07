@@ -21,5 +21,12 @@ valid_month_ex <- c(5,6)
 available_lts(publication_months= find_pub_mos(valid_month_ex), valid_months=valid_month_ex)
 available_lts(publication_months= 5, valid_months=valid_month_ex)
 available_lts(publication_months= c(3,4), valid_months=4)
+available_lts(publication_months= c(3), valid_months=4)
+available_lts(publication_months= c(2), valid_months=4)
+valid_mo_ex2 <- c(4,5)
+all_pub_mo_ex2 <- find_pub_mos(valid_mo_ex2)
+#> 11,12,1, 2, 3, 4 # looks good
+ publication_months = all_pub_mo_ex2
+available_lts(publication_months = c(12,1,2,3), valid_months= valid_mo_ex2)
 }
 }

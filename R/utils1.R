@@ -80,7 +80,7 @@ get_slider_values <-  function(input,
 
   lt_id_tags <- names(lts)
 
-  purrr::set_names(lt_id_tags,lt_id_tags) |>
+  purrr::set_names(lts,lt_id_tags) |>
     purrr::map(\(lt){
       input[[paste0("slider_", lt)]] %||% 4
     })
@@ -238,11 +238,16 @@ classify_historical <- function(
 #' available_lts(publication_months= find_pub_mos(valid_month_ex), valid_months=valid_month_ex)
 #' available_lts(publication_months= 5, valid_months=valid_month_ex)
 #' available_lts(publication_months= c(3,4), valid_months=4)
+#' available_lts(publication_months= c(3), valid_months=4)
+#' available_lts(publication_months= c(2), valid_months=4)
+#' valid_mo_ex2 <- c(4,5)
+#' all_pub_mo_ex2 <- find_pub_mos(valid_mo_ex2)
+#' #> 11,12,1, 2, 3, 4 # looks good
+#'  publication_months = all_pub_mo_ex2
+#' available_lts(publication_months = c(12,1,2,3), valid_months= valid_mo_ex2)
 #' }
 available_lts <-  function(publication_months, valid_months=c(5,6)){
   list_pub_mos <- load_pub_mo_list()
-  # publication_months <- find_pub_mos(valid_months) # just for testing
-
   # consider renaming `find_valid_month_interval` for purpose before (pub_mos)
   valid_interval <- find_valid_month_interval(valid_months)
   pub_interval <- find_valid_month_interval(publication_months)
@@ -256,7 +261,11 @@ available_lts <-  function(publication_months, valid_months=c(5,6)){
   # months to the final valid_month, but i think most people think about in terms of
   # lead time to first valid_month
   ret_lts <- all_lts_named[lt_idx_start:lt_idx_end]
-  ret_lts <- rlang::set_names(ret_lts, (length(ret_lts):1)-1)
+
+  # shift lt label to fit the above notion
+  shift_lt_labels <- valid_interval$latest-valid_interval$earliest
+  ret_lts <- rlang::set_names(ret_lts,as.numeric(names(ret_lts))-shift_lt_labels)
+
   return(ret_lts)
 
 }
