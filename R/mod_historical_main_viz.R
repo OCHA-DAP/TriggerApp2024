@@ -96,7 +96,7 @@ mod_historical_main_viz_server <- function(id,l_inputs){
 
     # it only really makes sense to compare the combined strata across window
     # at least as as an MVP first step.
-    observe({
+    # observe({
 
       yearly_flags_to_compare_with_other_windows <- reactive({
 
@@ -107,16 +107,22 @@ mod_historical_main_viz_server <- function(id,l_inputs){
         else{
           ret <-  ldf_historical()$yearly_flags_lgl_combined
         }
-        return(ret)
+        # browser
+        return(
+          ret |>
+                 dplyr::select(yr_date,lgl_flag) |>
+                 dplyr::mutate(
+                   window = l_inputs$window_name()
+                 )
+          )
         # if >= 1 strata ... let's take the one we combined in run_thresholds
       })
-      if(length(l_inputs$admin1())>1)
-      browser()
-    })
+
 
     return(
       list(
-        df_any_activation_per_year =reactive({ldf_historical()$yearly_flags_lgl}),
+        # df_any_activation_per_year =reactive({ldf_historical()$yearly_flags_lgl}),
+        df_window_compare =reactive({yearly_flags_to_compare_with_other_windows()}),
         analysis_level =reactive({l_inputs$analysis_level()})
       )
     )

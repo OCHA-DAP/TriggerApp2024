@@ -220,6 +220,7 @@ mod_varselect_server <- function(id){
 
     return(
       list(
+        window_name = reactive({input$window_name}),
         analysis_level = reactive({ input$analysis_level }),
         admin0= reactive({input$sel_adm0}),
         admin1 = reactive({ input$sel_adm1 }),
