@@ -240,6 +240,9 @@ classify_historical <- function(
 #' available_lts(publication_months= c(3,4), valid_months=4)
 #' available_lts(publication_months= c(3), valid_months=4)
 #' available_lts(publication_months= c(2), valid_months=4)
+#'
+#' # what if there is a gap? should this not be allowed somehow or should it be handled
+#' available_lts(publication_months= c(2,3),valid_months=c(4,6))
 #' valid_mo_ex2 <- c(4,5)
 #' all_pub_mo_ex2 <- find_pub_mos(valid_mo_ex2)
 #' #> 11,12,1, 2, 3, 4 # looks good
@@ -252,7 +255,11 @@ available_lts <-  function(publication_months, valid_months=c(5,6)){
   valid_interval <- find_valid_month_interval(valid_months)
   pub_interval <- find_valid_month_interval(publication_months)
   latest_month_chr <- lubridate::month(valid_interval$latest,label=T,abbr=T)
+
+  # get list of all possible leadtimes months given the latest possible valid month
   all_lts <- list_pub_mos[[latest_month_chr]]
+
+  # name each of these month (integers) with our leadtime integers (0-6)
   all_lts_named <- rlang::set_names(all_lts,(length(all_lts):1)-1)
   lt_idx_start <- which(unname(all_lts_named) == pub_interval$earliest)
   lt_idx_end <- which(unname(all_lts_named) == pub_interval$latest)
@@ -321,11 +328,25 @@ load_pub_mo_list <- function(lt=6){
 #' find_valid_month_interval(valid_months = c(11,12,1,2,3,4,5))
 #' find_valid_month_interval(valid_months = sort(c(11,12,1,2,3)))
 #' find_valid_month_interval(valid_months = sort(c(12,1,2,3)))
+#' find_valid_month_interval(valid_months = c(4,6,7))
 #' }
 
 find_valid_month_interval <- function(valid_months){
   valid_months <- as.numeric(valid_months)
   diff_lag <- valid_months-dplyr::lag(valid_months)
+
+  # experimenting to try to allow gaps in valid_months ####
+  # all_seqs <- load_pub_mo_list(lt = 6)
+  # full_seq <- c(1:12)
+  # full_seq[min(valid_months):max(valid_months)]
+  # c(valid_months, full_seq[!(full_seq %in% valid_months)])
+  #
+  # if(any(10,11,12 %in% valid_months)& any(1,2,3 %in% valid_months)){
+  #
+  # }
+  ## end experimentation: ####
+
+
   idx_switch <- which(diff_lag>1)
   if(length(idx_switch)==0){
     max_month <- valid_months[length(valid_months)]
@@ -503,7 +524,7 @@ ui_update_admin <-  function(session=session,
 
     updateSelectizeInput(session,
                          inputId = update_id,
-                         choices = updated_choices
+                         choices = updated_choices#,
                          # selected= updated_choices[1] # kinda works.
     )
 
