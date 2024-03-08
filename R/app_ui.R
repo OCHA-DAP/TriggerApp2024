@@ -26,7 +26,7 @@ app_ui <- function(request) {
           inline=T),
         mod_historical_main_viz_ui("historical_window_1"),
 
-        mod_checkSelects_ui("checkSelects_1"),
+        # mod_checkSelects_ui("checkSelects_1"),
         conditionalPanel(condition = "input.multiple_windows=='2'",
                          mod_varselect_ui("window_2",window_label="Window 2"),
                          mod_historical_main_viz_ui("historical_window_2"),

@@ -14,9 +14,11 @@ app_server <- function(input, output, session) {
 
   w1_var_inputs <- mod_varselect_server("window_1")
   w2_var_inputs <- mod_varselect_server("window_2")
-  mod_checkSelects_server("checkSelects_1",
-                          l1_inputs=w1_var_inputs,
-                          l2_inputs=w2_var_inputs)
+
+  # useful module for trouble shooting reactivity, but output is messy
+  # mod_checkSelects_server("checkSelects_1",
+  #                         l1_inputs=w1_var_inputs,
+  #                         l2_inputs=w2_var_inputs)
 
   w1_data_classified <- mod_historical_main_viz_server("historical_window_1",
                                  l_inputs = w1_var_inputs)
