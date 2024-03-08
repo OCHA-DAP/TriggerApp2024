@@ -91,18 +91,19 @@ mod_varselect_ui <- function(id,window_label){
         rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
       selected = c(11,12,1,2, 3, 4),
     ),
+    uiOutput(ns("lt_ui")),
 
     # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
-    fluidRow(
-      column(
-        width = 6,
-        div(
-          class = "label-left",
-          uiOutput(ns("lt_ui"))
-        )
-      )
-      # might need another col to add up to 12?
-    )
+    # fluidRow(
+    #   column(
+    #     width = 12,
+    #     div(
+    #       # class = "label-left",
+    #       uiOutput(ns("lt_ui"))
+    #     )
+    #   )
+    #   # might need another col to add up to 12?
+    # )
   )
 }
 
@@ -190,24 +191,31 @@ mod_varselect_server <- function(id){
           publication_months = as.numeric(input$pub_mo1),
           valid_months = as.numeric(input$valid_mo1)
         )
+        total_lts <- length(available_lts)
 
-        available_lts |>
-          purrr::imap(\(mo_tmp,lt_tmp){
-            pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
-            slider_label <- glue::glue("{pub_mo_slider_chr} (LT: {lt_tmp})")
-            ns_id <- paste0("slider_", lt_tmp)
-            slider_default_iso <- isolate(input[[ns_id]] %||% 4)
-            sliderInput(
-              # inputId = ns(paste0("slider_", lt_tmp)),
-              inputId = ns(ns_id),
-              label = slider_label,
-              min = 1,
-              max = 30,
-              value = slider_default_iso,
-              width = "100%" # Adjust min, max, and value as needed
-            )
-          })
-      })
+        fluidRow(
+            available_lts |>
+              purrr::imap(\(mo_tmp,lt_tmp){
+                pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
+                slider_label <- glue::glue("{pub_mo_slider_chr} (LT: {lt_tmp})")
+                ns_id <- paste0("slider_", lt_tmp)
+                slider_default_iso <- isolate(input[[ns_id]] %||% 4)
+                column(
+                  width = 2,
+                sliderInput(
+                  # inputId = ns(paste0("slider_", lt_tmp)),
+                  inputId = ns(ns_id),
+                  label = slider_label,
+                  min = 1,
+                  max = 20,
+                  value = slider_default_iso,
+                  width = "100%" # Adjust min, max, and value as needed
+                )
+                )
+              })
+          )})
+
+      # })
     # spatial_filter_keys <- reactive({
     #
     #   get_spatial_filter_keys(adm0_input = input$sel_adm0,
