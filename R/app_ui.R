@@ -18,16 +18,32 @@ app_ui <- function(request) {
       tabPanel(
         title ="testing",
         mod_varselect_ui(id= "window_1",window_label="Window 1"),
-        radioButtons(
-          inputId = "multiple_windows",
-          label = "How many windows?",
-          choices = c("1","2"),
-          selected = "2",
-          inline=T),
+
+        # bringing this into play would probably make sense soon:
+        # mod_plot_controls_ui(id="plot_controls_1"),
+        fluidRow(
+          column(3,
+                 radioButtons(
+                   inputId = "multiple_windows",
+                   label = "How many windows?",
+                   choices = c("1","2"),
+                   selected = "2",
+                   inline=T)),
+          column(3,
+                 radioButtons(
+                   inputId = "which_charts",
+                   label = "Which charts to plot",
+                   choices = c("None"="none","Combined"="combined","Strata Level"="strata_level"),
+                   selected = "none",
+                   inline=T),
+          )),
         mod_historical_main_viz_ui("historical_window_1"),
 
         # mod_checkSelects_ui("checkSelects_1"),
-        conditionalPanel(condition = "input.multiple_windows=='2'",
+        conditionalPanel(
+          # condition = "plot_controls_1-multiple_windows=='2'", ## can i get away with something like this or do I need rewrite this all into
+                                                                  # a bigger renderUI({}) sequence?
+          condition = "input.multiple_windows=='2'",
                          mod_varselect_ui("window_2",window_label="Window 2"),
                          mod_historical_main_viz_ui("historical_window_2"),
                          mod_combine_windows_ui("combine_windows")
