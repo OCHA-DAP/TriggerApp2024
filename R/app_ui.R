@@ -17,7 +17,7 @@ app_ui <- function(request) {
       # mod_historical_process_simp_ui("historical_process_simp_1"),
       tabPanel(
         title ="testing",
-        mod_varselect_ui("window_1"),
+        mod_varselect_ui(id= "window_1",window_label="Window 1"),
         radioButtons(
           inputId = "multiple_windows",
           label = "How many windows?",
@@ -28,7 +28,7 @@ app_ui <- function(request) {
 
         mod_checkSelects_ui("checkSelects_1"),
         conditionalPanel(condition = "input.multiple_windows=='2'",
-                         mod_varselect_ui("window_2"),
+                         mod_varselect_ui("window_2",window_label="Window 2"),
                          mod_historical_main_viz_ui("historical_window_2"),
                          mod_combine_windows_ui("combine_windows")
                          )

@@ -62,7 +62,10 @@ get_spatial_filter_keys <-  function(adm0_input,
                                   "adm0_pcode")
   idx_first_non_null <- which(purrr::map_lgl(filter_drill_downs, ~!is.null(.x)))[1]
 
-  if(filter_drill_down_columns[idx_first_non_null-1]==analysis_level){
+  if(
+    filter_drill_down_columns[idx_first_non_null-1]==analysis_level #&
+    # is.null(filter_drill_downs[[idx_first_non_null]])
+    ){
     idx_first_non_null <- idx_first_non_null+1
   }
 

@@ -23,5 +23,6 @@ find_valid_month_interval(valid_months = c(12,1,2,3,4,5))
 find_valid_month_interval(valid_months = c(11,12,1,2,3,4,5))
 find_valid_month_interval(valid_months = sort(c(11,12,1,2,3)))
 find_valid_month_interval(valid_months = sort(c(12,1,2,3)))
+find_valid_month_interval(valid_months = c(4,6,7))
 }
 }

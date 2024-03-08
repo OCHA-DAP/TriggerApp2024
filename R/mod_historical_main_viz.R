@@ -51,9 +51,13 @@ mod_historical_main_viz_server <- function(id,l_inputs){
           ) |>
           gt_style_thresh_table(table_type = "strata")
       )
-      output$tbl_strata_combined <-   renderUI({
-        if(length(l_inputs$spatial_filter_keys()$value)>1){
-          gt::render_gt(
+      output$tbl_strata_combined <-   gt::render_gt({
+        # if(length(l_inputs$spatial_filter_keys()$value)>1){
+        num_strata <-  length(unique(l_inputs$df_filt()[[l_inputs$analysis_level()]]))
+
+        # if(length(l_inputs$df_filt()$value)>1){
+        if(num_strata >1){
+          # gt::render_gt(
             ldf_historical()$thresholds_combined |>
 
               dplyr::select(-dplyr::starts_with("adm_comb")) |>
@@ -68,7 +72,7 @@ mod_historical_main_viz_server <- function(id,l_inputs){
 
               ) |>
               gt_style_thresh_table(table_type = "combined")
-          )
+          # )
         }
       })
 
@@ -89,6 +93,27 @@ mod_historical_main_viz_server <- function(id,l_inputs){
       )
     }
     )
+
+    # it only really makes sense to compare the combined strata across window
+    # at least as as an MVP first step.
+    observe({
+
+      yearly_flags_to_compare_with_other_windows <- reactive({
+
+        # so basically if 1 strata --- we can just call this the combined strata
+        if(length(unique(ldf_historical()$yearly_flags_lgl[[l_inputs$analysis_level()]]))==1){
+          ret <- ldf_historical()$yearly_flags_lgl
+        }
+        else{
+          ret <-  ldf_historical()$yearly_flags_lgl_combined
+        }
+        return(ret)
+        # if >= 1 strata ... let's take the one we combined in run_thresholds
+      })
+      if(length(l_inputs$admin1())>1)
+      browser()
+    })
+
     return(
       list(
         df_any_activation_per_year =reactive({ldf_historical()$yearly_flags_lgl}),

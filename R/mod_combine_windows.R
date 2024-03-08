@@ -10,6 +10,7 @@
 mod_combine_windows_ui <- function(id){
   ns <- NS(id)
   tagList(
+    h1("combined activation/return periods across windows"),
     tableOutput(outputId = ns("tbl_joint_rate"))
 
   )
@@ -22,6 +23,11 @@ mod_combine_windows_server <- function(id,l_w1_inputs, l_w2_inputs){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     l_combined_window <- reactive({
+
+      # observe({
+      #   num_strata <-
+      #   browser()
+      # })
 
       # this is each window classified per year per lead time
       df_historical_combined <- dplyr::bind_rows(

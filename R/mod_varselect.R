@@ -7,10 +7,13 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_varselect_ui <- function(id){
+mod_varselect_ui <- function(id,window_label){
   ns <- NS(id)
   tagList(
     inputPanel(
+      textInput( inputId = ns("window_name"),
+                        label = "Window Name",
+                        value = window_label),
       selectInput(
         inputId = ns("analysis_level"),
         label = "Select Analysis Level",
@@ -205,15 +208,15 @@ mod_varselect_server <- function(id){
             )
           })
       })
-    spatial_filter_keys <- reactive({
-
-      get_spatial_filter_keys(adm0_input = input$sel_adm0,
-                              adm1_input =input$sel_adm1 ,
-                              adm2_input = input$sel_adm2,
-                              adm3_input =input$sel_adm3,
-                              analysis_level=input$analysis_level
-                              )
-    })
+    # spatial_filter_keys <- reactive({
+    #
+    #   get_spatial_filter_keys(adm0_input = input$sel_adm0,
+    #                           adm1_input =input$sel_adm1 ,
+    #                           adm2_input = input$sel_adm2,
+    #                           adm3_input =input$sel_adm3,
+    #                           analysis_level=input$analysis_level
+    #                           )
+    # })
 
     return(
       list(
@@ -227,16 +230,22 @@ mod_varselect_server <- function(id){
         leadtimes =reactive({get_slider_values(input = input,
                                                publication_months = input$pub_mo1,
                                                valid_months = input$valid_mo1)}),
-        spatial_filter_keys = reactive({spatial_filter_keys()}),
+        # spatial_filter_keys = reactive({spatial_filter_keys()}),
         df_filt= reactive({
           # can remove this step if i just rename analysis_level choices to not include _pcode
           df_id <- stringr::str_remove(input$analysis_level,"_pcode")
           df_sel <- ldf[[df_id]]
 
           df_sel_adm <- df_sel |>
+            # dplyr::filter(
+            #   !!rlang::sym(spatial_filter_keys()$name) %in%
+            #     spatial_filter_keys()$value
+            # ) |>
             dplyr::filter(
-              !!rlang::sym(spatial_filter_keys()$name) %in%
-                spatial_filter_keys()$value
+              if(!is.null(input$sel_adm0)) adm0_pcode %in% input$sel_adm0 else TRUE,
+              if(!is.null(input$sel_adm1)) adm1_pcode %in% input$sel_adm1 else TRUE,
+              if(!is.null(input$sel_adm2)) adm2_pcode %in% input$sel_adm2 else TRUE,
+              if(!is.null(input$sel_adm3)) adm3_pcode %in% input$sel_adm3 else TRUE
             ) |>
             # separating this filter for trouble shooting. Should be able to combine
             dplyr::filter(
