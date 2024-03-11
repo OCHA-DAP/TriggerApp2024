@@ -12,7 +12,9 @@ mod_historical_main_viz_ui <- function(id){
   tagList(
     tableOutput(outputId = ns("tbl_strata_level")),
     # tableOutput(outputId = ns("tbl_strata_combined")),
+    uiOutput(outputId = ns("which_plot_ui")),
     plotOutput(outputId = ns("plot_historical_timeseries")),
+
 
   )
 }
@@ -81,6 +83,23 @@ mod_historical_main_viz_server <- function(id,l_inputs){
             gt::cell_fill(color = '#55b284ff')
             )
         )
+    })
+
+    output$which_plot_ui <- renderUI({
+      # browser()
+      col_nums <- readr::parse_number(names(l_inputs$df_filt()))
+      num_chr <- max(col_nums,na.rm=T)
+      pcode_col <-  paste0("adm",num_chr,"_pcode")
+      en_col <-  paste0("adm",num_chr,"_en")
+      groupers <-  c(pcode_col,en_col)
+      df_lookup <- l_inputs$df_filt() |>
+        dplyr::distinct(!!!rlang::syms(groupers))
+
+      choices_plot<- rlang::set_names(df_lookup[[pcode_col]], df_lookup[[en_col]])
+      selectInput(inputId = ns("strata_plot_below"),
+                  label = "Plot Timeries",
+                  choices =choices_plot
+      )
     })
 
 

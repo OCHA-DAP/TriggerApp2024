@@ -17,7 +17,7 @@ app_server <- function(input, output, session) {
   w2_var_inputs <- mod_varselect_server("window_2")
 
   # useful module for trouble shooting reactivity, but output is messy
-  # mod_checkSelects_server("checkSelects_1",
+  # mod_checkSelects_server("checkSelects_1",go
   #                         l1_inputs=w1_var_inputs,
   #                         l2_inputs=w2_var_inputs)
 
