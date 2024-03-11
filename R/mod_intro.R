@@ -31,6 +31,9 @@ mod_intro_ui <- function(id){
 mod_intro_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+    list(
+      num_windows = reactive({input$num_windows})
+    )
 
   })
 }

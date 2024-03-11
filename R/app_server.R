@@ -11,24 +11,26 @@ app_server <- function(input, output, session) {
   # mod_historical_analysis_server("historical_analysis_1")
   # mod_historical_process_simp_server("historical_process_simp_1")
   # browser()
+  intro_inputs <- mod_intro_server("intro_1")
+  mod_compile_design_params_server("compile_design_params_1",l_intro_inputs = intro_inputs)
 
-  w1_var_inputs <- mod_varselect_server("window_1")
-  w2_var_inputs <- mod_varselect_server("window_2")
-
-  # useful module for trouble shooting reactivity, but output is messy
-  # mod_checkSelects_server("checkSelects_1",
-  #                         l1_inputs=w1_var_inputs,
-  #                         l2_inputs=w2_var_inputs)
-  # control_plot_inputs <- mod_plot_controls_server("plot_controls_1")
-
-  w1_data_classified <- mod_historical_main_viz_server("historical_window_1",
-                                 l_inputs = w1_var_inputs)
-
-  w2_data_classified <- mod_historical_main_viz_server("historical_window_2",
-                                 l_inputs = w2_var_inputs)
-
-  mod_combine_windows_server("combine_windows",
-                             l_w1_inputs =w1_data_classified,
-                             l_w2_inputs = w2_data_classified
-                             )
+  # w1_var_inputs <- mod_varselect_server("window_1")
+  # w2_var_inputs <- mod_varselect_server("window_2")
+  #
+  # # useful module for trouble shooting reactivity, but output is messy
+  # # mod_checkSelects_server("checkSelects_1",
+  # #                         l1_inputs=w1_var_inputs,
+  # #                         l2_inputs=w2_var_inputs)
+  # # control_plot_inputs <- mod_plot_controls_server("plot_controls_1")
+  #
+  # w1_data_classified <- mod_historical_main_viz_server("historical_window_1",
+  #                                l_inputs = w1_var_inputs)
+  #
+  # w2_data_classified <- mod_historical_main_viz_server("historical_window_2",
+  #                                l_inputs = w2_var_inputs)
+  #
+  # mod_combine_windows_server("combine_windows",
+  #                            l_w1_inputs =w1_data_classified,
+  #                            l_w2_inputs = w2_data_classified
+  #                            )
 }
