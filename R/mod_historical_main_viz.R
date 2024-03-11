@@ -107,7 +107,7 @@ mod_historical_main_viz_server <- function(id,l_inputs){
         else{
           ret <-  ldf_historical()$yearly_flags_lgl_combined
         }
-        # browser
+
         return(
           ret |>
                  dplyr::select(yr_date,lgl_flag) |>

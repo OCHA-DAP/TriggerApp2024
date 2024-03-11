@@ -86,11 +86,15 @@ mod_varselect_ui <- function(id,window_label){
     ),
     shinyWidgets::checkboxGroupButtons(
       inputId = ns("pub_mo1"),
-      label = "2. Available months to monitor from:",
+      label = "Step 2: For the time period of concern selected, You can select from the following forecast publications months:",
       choices = c(1:12) |>
         rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
       selected = c(11,12,1,2, 3, 4),
     ),
+    # class="control-label"
+    # <div id="foo" class="shiny-text-output" style="color:green;"></div>
+    tags$b(tags$span(class= "control-label",
+                     "Step 3: For each selected publication month you can set an activation threshold:")),
     uiOutput(ns("lt_ui")),
 
     # put lt_ui and test_threshold elements next to eachother with fluidRow and column  ####
