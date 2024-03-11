@@ -17,6 +17,7 @@ app_ui <- function(request) {
       # mod_historical_process_simp_ui("historical_process_simp_1"),
       tabPanel(
         title ="testing",
+
         mod_varselect_ui(id= "window_1",window_label="Window 1"),
 
         # bringing this into play would probably make sense soon:
