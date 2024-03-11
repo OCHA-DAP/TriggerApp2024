@@ -20,6 +20,7 @@ app_server <- function(input, output, session) {
   # mod_checkSelects_server("checkSelects_1",
   #                         l1_inputs=w1_var_inputs,
   #                         l2_inputs=w2_var_inputs)
+
   # control_plot_inputs <- mod_plot_controls_server("plot_controls_1")
 
   w1_data_classified <- mod_historical_main_viz_server("historical_window_1",

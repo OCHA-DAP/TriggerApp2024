@@ -24,11 +24,12 @@ app_ui <- function(request) {
 
         # bringing this into play would probably make sense soon:
         # mod_plot_controls_ui(id="plot_controls_1"),
+        # mod_checkSelects_ui("checkSelects_1"),
         mod_historical_main_viz_ui("historical_window_1"),
 
 
         # this is just for checking reactivity.
-        # mod_checkSelects_ui("checkSelects_1"),
+
 
         conditionalPanel(
           condition = "input.num_windows=='2'", # a little surprised this works! accessing ns from another module

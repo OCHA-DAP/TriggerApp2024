@@ -94,6 +94,7 @@ run_thresholding <-  function(df,
     df = df,
     valid_month_arg = valid_months
   )
+  # browse
 
 
   df_thresholds <- threshold_values(
@@ -402,6 +403,8 @@ summarise_forecast_temporal2 <- function(df,
 #'
 #' @examples
 threshold_values <- function(df,slider_rps){
+
+  # browser()
 
 
   l_quantile_thresholds <- slider_rps |>

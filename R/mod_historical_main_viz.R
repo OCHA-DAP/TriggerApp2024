@@ -59,13 +59,8 @@ mod_historical_main_viz_server <- function(id,l_inputs){
 
       return(thresh_tbl)
     })
-    # output$tbl_strata_level <- gt::render_gt({
-    #
-    #   thresh_tbl() |>
-    #     gt::gt()
-    # })
 
-    output$tbl_strata_level <-  gt::render_gt(
+    output$tbl_strata_level <-  gt::render_gt({
       thresh_tbl() |>
         gt::gt() |>
         gt::cols_label(
@@ -86,6 +81,7 @@ mod_historical_main_viz_server <- function(id,l_inputs){
             gt::cell_fill(color = '#55b284ff')
             )
         )
+    })
 
 
     # would suspect that this being added to reactive above woud improve performance, but not sure
