@@ -11,7 +11,7 @@ mod_historical_main_viz_ui <- function(id){
   ns <- NS(id)
   tagList(
     tableOutput(outputId = ns("tbl_strata_level")),
-    tableOutput(outputId = ns("tbl_strata_combined")),
+    # tableOutput(outputId = ns("tbl_strata_combined")),
     plotOutput(outputId = ns("plot_historical_timeseries")),
 
   )
@@ -32,49 +32,61 @@ mod_historical_main_viz_server <- function(id,l_inputs){
     # this is how you can VIEW reactives passeed from another module
     ldf_historical <-
       reactive({
-      # ldf_historical <-
+        # ldf_historical <-
         run_thresholding(
           df = l_inputs$df_filt(),
           valid_months = l_inputs$valid_mo(),
           leadtimes = l_inputs$leadtimes(),
           analysis_level = l_inputs$analysis_level()
-                         )
-    })
-
-      output$tbl_strata_level <-  gt::render_gt(
-        ldf_historical()$thresholds |>
-          gt::gt() |>
-          gt::cols_label(
-            .list = lookup_rename_gt(
-              analysis_level = l_inputs$analysis_level()
-            )
-          ) |>
-          gt_style_thresh_table(table_type = "strata")
-      )
-      output$tbl_strata_combined <-   gt::render_gt({
-        # if(length(l_inputs$spatial_filter_keys()$value)>1){
-        num_strata <-  length(unique(l_inputs$df_filt()[[l_inputs$analysis_level()]]))
-
-        # if(length(l_inputs$df_filt()$value)>1){
-        if(num_strata >1){
-          # gt::render_gt(
-            ldf_historical()$thresholds_combined |>
-
-              dplyr::select(-dplyr::starts_with("adm_comb")) |>
-              dplyr::mutate(
-                adm_comb = "Combined Strata"
-              ) |>
-              gt::gt(rowname_col = "adm_comb",
-              ) |>
-              gt::cols_label(
-                overall_activation ="Joint Activation",
-                overall_rp= "Joint RP",
-
-              ) |>
-              gt_style_thresh_table(table_type = "combined")
-          # )
-        }
+        )
       })
+    thresh_tbl <- reactive({
+      # browser()
+      thresh_tbl <- ldf_historical()$thresholds |>
+        dplyr::mutate(
+          level ="strata"
+        )
+      num_strata <-  length(unique(l_inputs$df_filt()[[l_inputs$analysis_level()]]))
+      if(num_strata>1){
+        # browser()
+        thresh_combined <- ldf_historical()$thresholds_combined |>
+          dplyr::select(-dplyr::starts_with("adm_comb")) |>
+          dplyr::mutate(
+            level ="combined"
+          )
+        thresh_tbl<- dplyr::bind_rows(thresh_tbl,thresh_combined)
+      }
+
+      return(thresh_tbl)
+    })
+    # output$tbl_strata_level <- gt::render_gt({
+    #
+    #   thresh_tbl() |>
+    #     gt::gt()
+    # })
+
+    output$tbl_strata_level <-  gt::render_gt(
+      thresh_tbl() |>
+        gt::gt() |>
+        gt::cols_label(
+          .list = lookup_rename_gt(
+            analysis_level = l_inputs$analysis_level()
+          )
+        ) |>
+        gt::cols_hide("level") |>
+        gt_style_thresh_table(table_type = "strata") |>
+        gt::sub_missing(missing_text = "") |>
+        gt::tab_style(
+          locations = gt::cells_body(
+            columns = dplyr::everything(),
+            rows = level=="combined"
+          ),
+          style = list(
+            gt::cell_text(color = 'white'),
+            gt::cell_fill(color = '#55b284ff')
+            )
+        )
+
 
     # would suspect that this being added to reactive above woud improve performance, but not sure
     output$plot_historical_timeseries <-  renderPlot({
@@ -98,25 +110,25 @@ mod_historical_main_viz_server <- function(id,l_inputs){
     # at least as as an MVP first step.
     # observe({
 
-      yearly_flags_to_compare_with_other_windows <- reactive({
+    yearly_flags_to_compare_with_other_windows <- reactive({
 
-        # so basically if 1 strata --- we can just call this the combined strata
-        if(length(unique(ldf_historical()$yearly_flags_lgl[[l_inputs$analysis_level()]]))==1){
-          ret <- ldf_historical()$yearly_flags_lgl
-        }
-        else{
-          ret <-  ldf_historical()$yearly_flags_lgl_combined
-        }
+      # so basically if 1 strata --- we can just call this the combined strata
+      if(length(unique(ldf_historical()$yearly_flags_lgl[[l_inputs$analysis_level()]]))==1){
+        ret <- ldf_historical()$yearly_flags_lgl
+      }
+      else{
+        ret <-  ldf_historical()$yearly_flags_lgl_combined
+      }
 
-        return(
-          ret |>
-                 dplyr::select(yr_date,lgl_flag) |>
-                 dplyr::mutate(
-                   window = l_inputs$window_name()
-                 )
+      return(
+        ret |>
+          dplyr::select(yr_date,lgl_flag) |>
+          dplyr::mutate(
+            window = l_inputs$window_name()
           )
-        # if >= 1 strata ... let's take the one we combined in run_thresholds
-      })
+      )
+      # if >= 1 strata ... let's take the one we combined in run_thresholds
+    })
 
 
     return(

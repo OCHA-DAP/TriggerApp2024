@@ -11,6 +11,7 @@ app_server <- function(input, output, session) {
   # mod_historical_analysis_server("historical_analysis_1")
   # mod_historical_process_simp_server("historical_process_simp_1")
   # browser()
+  mod_intro_server("intro_1")
 
   w1_var_inputs <- mod_varselect_server("window_1")
   w2_var_inputs <- mod_varselect_server("window_2")
