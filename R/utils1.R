@@ -80,7 +80,7 @@ get_slider_values <-  function(input,
 
   lt_id_tags <- names(lts)
 
-  purrr::set_names(lts,lt_id_tags) |>
+  purrr::set_names(lt_id_tags,lt_id_tags) |>
     purrr::map(\(lt){
       input[[paste0("slider_", lt)]] %||% 4
     })
