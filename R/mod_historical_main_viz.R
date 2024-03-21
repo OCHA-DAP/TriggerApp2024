@@ -10,10 +10,20 @@
 mod_historical_main_viz_ui <- function(id){
   ns <- NS(id)
   tagList(
-    tableOutput(outputId = ns("tbl_strata_level")),
+    fluidRow(
+      column(width = 6,
+      tableOutput(outputId = ns("tbl_strata_level")),
+      ),
+      column(
+        width = 6,
+        uiOutput(outputId = ns("which_plot_ui")),
+        plotOutput(outputId = ns("plot_historical_timeseries")),
+      )
+
+    )
+
     # tableOutput(outputId = ns("tbl_strata_combined")),
-    uiOutput(outputId = ns("which_plot_ui")),
-    plotOutput(outputId = ns("plot_historical_timeseries")),
+
 
 
   )
@@ -105,6 +115,15 @@ mod_historical_main_viz_server <- function(id,l_inputs){
 
     # would suspect that this being added to reactive above woud improve performance, but not sure
     output$plot_historical_timeseries <-  renderPlot({
+      col_nums <- readr::parse_number(names(l_inputs$df_filt()))
+      num_chr <- max(col_nums,na.rm=T)
+      pcode_col <-  paste0("adm",num_chr,"_pcode")
+      # en_col <-  paste0("adm",num_chr,"_en")
+      # groupers <-  c(pcode_col,en_col)
+      # df_lookup <- l_inputs$df_filt() |>
+      #   dplyr::distinct(!!!rlang::syms(groupers))
+      # browser()
+
       month_aggregated_label <- glue::glue_collapse(
         lubridate::month(as.numeric( l_inputs$valid_mo()), label = T),
         sep = "-"
@@ -114,7 +133,10 @@ mod_historical_main_viz_server <- function(id,l_inputs){
       )
 
       plot_historical(
-        df = ldf_historical()$historical_classified,
+        df = ldf_historical()$historical_classified |>
+          dplyr::filter(
+            !!sym(pcode_col) == input$strata_plot_below
+            ),
         analysis_level = l_inputs$analysis_level(),
         plot_title = p_title_main
       )
