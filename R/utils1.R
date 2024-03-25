@@ -525,7 +525,7 @@ ui_update_admin <-  function(session=session,
     updateSelectizeInput(session,
                          inputId = update_id,
                          choices = updated_choices#,
-                         # selected= updated_choices[1] # kinda works.
+                         # selected= updated_choices[1:2] # kinda works.
     )
 
 

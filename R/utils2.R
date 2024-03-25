@@ -94,8 +94,6 @@ run_thresholding <-  function(df,
     df = df,
     valid_month_arg = valid_months
   )
-  # browse
-
 
   df_thresholds <- threshold_values(
     df= df_summarised,
@@ -135,7 +133,9 @@ run_thresholding <-  function(df,
     yearly_flags_lgl = df_yearly_activation_lgl
   )
 
-  if(length(unique(df_summarised[[analysis_level]]))>1){
+  num_strata <- length(unique(df_summarised[[analysis_level]]))
+
+  if(num_strata>1){
     # if(
     #   length(unique(df_summarised[[analysis_level]]))
     #   <4){
@@ -445,7 +445,7 @@ gt_style_thresh_table <- function(gt_ob,table_type){
     ret_gt <- gt_num_formatted |>
       gt::tab_spanner(
         columns = dplyr::any_of(as.character(c(0:6))),
-        label = "Thresholds (mm) for different leadtimes based on selected RPs",
+        label = "Thresholds (mm) for different\nleadtimes based on selected RPs",
       ) |>
       gt::tab_spanner(
         columns = dplyr::ends_with("_en"),

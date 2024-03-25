@@ -19,8 +19,20 @@ mod_historical_main_viz_ui <- function(id){
         uiOutput(outputId = ns("which_plot_ui")),
         plotOutput(outputId = ns("plot_historical_timeseries")),
       )
+    ),
+    fluidRow(
+      column(
+        2,
+        numericInput(inputId = ns("allocation_amt"),label = "Allocation Amount",value = 1000000),
+      ),
+      column(
+        3,
+        numericInput(inputId = ns("max_num_allocations_per_year"),"Number of allocations per year", value = 1)
+      )
 
-    )
+      ),
+
+    plotOutput(outputId = ns("plot_payout"))
 
     # tableOutput(outputId = ns("tbl_strata_combined")),
 
@@ -72,6 +84,40 @@ mod_historical_main_viz_server <- function(id,l_inputs){
       return(thresh_tbl)
     })
 
+    output$plot_payout <-  renderPlot({
+      num_strata <-  length(unique(l_inputs$df_filt()[[l_inputs$analysis_level()]]))
+      payout <- input$allocation_amt
+      if(num_strata>1){
+        df_classified_payout <-  ldf_historical()$historical_classified_combined
+      }
+      if(num_strata==1){
+        df_classified_payout <-  ldf_historical()$historical_classified
+      }
+      # browser()
+      df_payout_cum <-  df_classified_payout |>
+        dplyr::group_by(
+          pub_date_yr = lubridate::floor_date(pub_date,"year")
+        ) |>
+        dplyr::summarise(
+          num_activation_moments = sum(lgl_flag)
+          ) |> dplyr::mutate(
+          payout_potential = num_activation_moments * payout,
+          payout_limited = ifelse(num_activation_moments>input$max_num_allocations_per_year,input$max_num_allocations_per_year*payout,num_activation_moments*payout ),
+          payout_cum = cumsum(payout_limited)
+
+        )
+      df_payout_cum |>
+        ggplot2::ggplot(
+          aes(x= pub_date_yr,y= payout_cum)
+        )+
+        ggplot2::geom_line()+
+        ggplot2::scale_y_continuous(labels = scales::label_comma())+
+        ggplot2::labs(y="Total cumulative allocations ($)")+
+        ggplot2::theme(
+          axis.title.x  = ggplot2::element_blank()
+        )
+    })
+
     output$tbl_strata_level <-  gt::render_gt({
       thresh_tbl() |>
         gt::gt() |>
@@ -114,7 +160,10 @@ mod_historical_main_viz_server <- function(id,l_inputs){
 
 
     # would suspect that this being added to reactive above woud improve performance, but not sure
-    output$plot_historical_timeseries <-  renderPlot({
+    # output$plot_historical_timeseries <-
+      observeEvent(list(l_inputs$admin0(),l_inputs$admin1(),l_inputs$admin2(),l_inputs$admin3()),{
+
+      # quick proof of concept code -- will refactor and remove later
       col_nums <- readr::parse_number(names(l_inputs$df_filt()))
       num_chr <- max(col_nums,na.rm=T)
       pcode_col <-  paste0("adm",num_chr,"_pcode")
@@ -131,8 +180,10 @@ mod_historical_main_viz_server <- function(id,l_inputs){
       p_title_main <- glue::glue(
         "Historical {month_aggregated_label}"
       )
+      req(input$strata_plot_below)
 
-      plot_historical(
+      output$plot_historical <- renderPlot({
+        plot_historical(
         df = ldf_historical()$historical_classified |>
           dplyr::filter(
             !!sym(pcode_col) == input$strata_plot_below
@@ -140,6 +191,7 @@ mod_historical_main_viz_server <- function(id,l_inputs){
         analysis_level = l_inputs$analysis_level(),
         plot_title = p_title_main
       )
+      })
     }
     )
 

@@ -1,6 +1,5 @@
 Package: TriggerApp2024
 Title: Drought Triggers: Seasonal Forecast
-DisplayMode: Showcase
 Version: 0.0.0.9000
 Authors@R: 
     person("Zack", "Arno", , "zackarno@gmail.com", role = c("cre", "aut"))
@@ -19,6 +18,7 @@ Imports:
     purrr,
     readr,
     rlang,
+    scales,
     shiny (>= 1.8.0),
     shinyWidgets,
     stringr,
@@ -27,6 +27,7 @@ Suggests:
     spelling,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+DisplayMode: Showcase
 Encoding: UTF-8
 Language: en-US
 LazyData: true
