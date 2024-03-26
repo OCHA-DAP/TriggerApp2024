@@ -111,8 +111,6 @@ mod_admin_cascade_ui <- function(id){
     tags$b(tags$span(class= "control-label",
                      "Step 3: For each selected publication month you can set an activation threshold:")),
     uiOutput(ns("lt_ui"))
-
-    # tableOutput(ns("fu"))
   )
 }
 
@@ -266,6 +264,14 @@ mod_admin_cascade_server <- function(id){
         "adm3_pcode"= filt_adm3()
       )
     })
+    adm_aggregated <- reactive({
+      summarise_forecast_temporal_new(df = adm_filt(),
+                                     publication_month = input$pub_mo1,
+                                     valid_month = input$valid_mo1
+                                     )
+    }
+    )
+
     # observeEvent(
     #   input$sel_adm0,{
     #     # gdf_adm <- lgdf[["adm0_pcode"]]
@@ -435,14 +441,21 @@ mod_admin_cascade_server <- function(id){
 
 
     output$fu <- renderTable({
-      adm_filt() |>
+      adm_aggregated() |>
         # head()
         dplyr::sample_n(size =20)
     })
 
     return(
       list(
-        df_filtered_spatial = reactive({adm_filt()})
+        analysis_level = reactive({ input$analysis_level }),
+        adm_aggregated = reactive({adm_aggregated()}),
+        publication_months = reactive({input$pub_mo1}),
+        valid_months = reactive({input$valid_mo1}),
+        leadtimes =reactive({get_slider_values(input = input,
+                                               publication_months = input$pub_mo1,
+                                               valid_months = input$valid_mo1)})
+
       )
 
     )

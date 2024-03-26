@@ -81,8 +81,127 @@ get_spatial_filter_keys <-  function(adm0_input,
 }
 
 
+classify_historical <- function(
+    df,
+    thresh_table
+){
+
+  thresh_table_long <- thresh_table |>
+    tidyr::pivot_longer(
+      cols= dplyr::matches("\\b[0-6]\\b"),
+      names_to ="lt",
+      values_to = "q_ind"
+    ) |>
+    dplyr::mutate(
+      lt = as.numeric(lt)
+    )
+
+  df_classified <- df |>
+    dplyr::left_join(
+      thresh_table_long
+    ) |>
+    dplyr::mutate(
+      lgl_flag = value<q_ind
+    )
+  return(df_classified)
+}
+#' same as below just df is already aggregated
+run_thresholding2 <-  function(df,
+                              leadtimes,
+                              analysis_level
+){
+  # browser()
+
+# create percentile threshold table
+  df_thresholds <- threshold_values(
+    df= df,
+    slider_rps =leadtimes
+  )
+
+# classify each record
+  df_historical_classified <-  classify_historical(
+    df = df,
+    thresh_table = df_thresholds
+  )
+
+  # based on updated threshold -- classify again to see if any activation occured each year
+  df_yearly_activation_lgl <- df_historical_classified |>
+    # i think the new group_by apporach might be cleaner and more robust than this original one...
+    # dplyr::group_by(!!!rlang::syms(l_inputs$analysis_level()), yr_date) |>
+    dplyr::group_by(
+      dplyr::across(
+        dplyr::any_of(
+          dplyr::matches("adm\\d_[pe]"))),
+      yr_date) |>
+    dplyr::summarise(
+      lgl_flag = any(lgl_flag),
+      .groups = "drop_last"
+    )
+
+  # calculate activation rate across strata
+  df_joint_activation_rates <- df_yearly_activation_lgl |>
+    dplyr::summarise(
+      overall_activation = mean(lgl_flag, na.rm = T),
+      overall_rp = 1 / overall_activation
+    )
+
+  df_thresholds <- df_thresholds |>
+    dplyr::left_join(df_joint_activation_rates)
+
+  ret <- list(
+    thresholds= df_thresholds,
+    historical_classified =df_historical_classified,
+    yearly_flags_lgl = df_yearly_activation_lgl
+  )
+
+  num_strata <- length(unique(df[[analysis_level]]))
+
+  if(num_strata>1){
+    # if(
+    #   length(unique(df_summarised[[analysis_level]]))
+    #   <4){
+    #   browser()
+    # }
+    df_summarised_combined <- aggregate_weighted_forecast(df = df,
+                                                          df_area_loookup = df_area_lookup,
+                                                          analysis_level = analysis_level)
+    df_thresholds_combined <-  threshold_values(
+      df= df_summarised_combined,
+      slider_rps =leadtimes
+    )
+    df_historical_classified_combined <-  classify_historical(
+      df = df_summarised_combined,
+      thresh_table = df_thresholds_combined
+    )
+    df_yearly_activation_lgl_combined <- df_historical_classified_combined |>
+      dplyr::group_by(
+        dplyr::across(
+          dplyr::any_of(
+            dplyr::matches("adm\\d_[pe]|adm_combined_[pe]"))),
+        yr_date) |>
+      dplyr::summarise(
+        lgl_flag = any(lgl_flag),
+        .groups = "drop_last"
+      )
+    df_joint_activation_rates_combined <- df_yearly_activation_lgl_combined |>
+      dplyr::summarise(
+        overall_activation = mean(lgl_flag, na.rm = T),
+        overall_rp = 1 / overall_activation
+      )
+    df_thresholds_combined <- df_thresholds_combined |>
+      dplyr::left_join(df_joint_activation_rates_combined)
+
+    ret_combined <- list(
+      thresholds_combined= df_thresholds_combined,
+      historical_classified_combined =df_historical_classified_combined,
+      yearly_flags_lgl_combined = df_yearly_activation_lgl_combined
+    )
+    ret <- list(ret,ret_combined) |> purrr::flatten()
+  }
+  return(ret)
 
 
+}
 run_thresholding <-  function(df,
                               valid_months,
                               leadtimes,
@@ -336,6 +455,45 @@ union_forecast_to_strata <- function(df,df_area,analysis_level){
 
 
 }
+
+summarise_forecast_temporal_new <- function(df,
+                                           publication_month,
+                                           valid_month_arg){
+  valid_month_arg_values <- as.numeric(valid_month_arg)
+
+  df_filt1 <- df |>
+    dplyr::group_by(
+      dplyr::across(
+        dplyr::any_of(
+          dplyr::matches("adm\\d_[pe]"))),
+      pub_date
+    ) |>
+    dplyr::filter(
+      pub_month %in% publication_month,
+      valid_month %in% valid_month_arg_values # i don't like this equality
+    )
+
+  df_filt2 <- df_filt1 |>
+    # dplyr::group_by(pub_date) |>
+    dplyr::filter(
+      all(valid_month %in% valid_month_arg_values)
+    )
+
+  df_filt2 |>
+    dplyr::summarise(
+      # sum the rainfall for each pub date (across lts)
+      value = sum(value),
+
+      # grab min lt w/ each pub date.
+      lt= min(lt),
+      .groups = "drop"
+
+    ) |>
+    dplyr::mutate(
+      yr_date = lubridate::floor_date(pub_date, "year")
+    )
+}
+
 
 
 # attempting to deprecate:

@@ -14,7 +14,11 @@ app_server <- function(input, output, session) {
   # browser()
   mod_intro_server("intro_1")
   # mod_admin_filter_server("admin_filter_1")
-  w1_adm_inputs <- mod_admin_cascade_server("admin_cascade_1")
+  w1_adm_inputs <- mod_admin_cascade_server("window_1")
+  mod_rp_analysis_individual_server("window_1",l_inputs = w1_adm_inputs)
+
+
+  w2_adm_inputs <- mod_admin_cascade_server("window_2")
   # w1_temporal <-  mod_temporal_server("temporal_1")
 
 

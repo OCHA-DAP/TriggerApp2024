@@ -18,7 +18,13 @@ app_ui <- function(request) {
       tabPanel(
         title ="testing",
         mod_intro_ui("intro_1"),
-        mod_admin_cascade_ui("admin_cascade_1")
+        mod_admin_cascade_ui("window_1"),
+        mod_rp_analysis_individual_ui("window_1"),
+        conditionalPanel(
+                    condition = "input.num_windows=='2'", # a little surprised this works! accessing ns from another module
+                    mod_admin_cascade_ui("window_2")
+                    ),
+
         # mod_temporal_ui("temporal_1")
         # mod_admin_filter_ui("admin_filter_1")
 #
