@@ -149,30 +149,7 @@ thresholds_from_sliders <- function(df,
 
 }
 
-classify_historical <- function(
-    df,
-    thresh_table
-){
 
-  thresh_table_long <- thresh_table |>
-    tidyr::pivot_longer(
-      cols= dplyr::matches("\\b[0-6]\\b"),
-      names_to ="lt",
-      values_to = "q_ind"
-    ) |>
-    dplyr::mutate(
-      lt = as.numeric(lt)
-    )
-
-  df_classified <- df |>
-    dplyr::left_join(
-      thresh_table_long
-    ) |>
-    dplyr::mutate(
-      lgl_flag = value<q_ind
-    )
-  return(df_classified)
-}
 
 # df_win_long <- df_win1() %>%
 #   select(-pub_date)
@@ -333,7 +310,7 @@ load_pub_mo_list <- function(lt=6){
 
 find_valid_month_interval <- function(valid_months){
   valid_months <- as.numeric(valid_months)
-  diff_lag <- valid_months-dplyr::lag(valid_months)
+  diff_lag <- (valid_months-dplyr::lag(valid_months))>0
 
   # experimenting to try to allow gaps in valid_months ####
   # all_seqs <- load_pub_mo_list(lt = 6)

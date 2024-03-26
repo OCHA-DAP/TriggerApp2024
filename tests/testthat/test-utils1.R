@@ -22,6 +22,11 @@ test_that("Available LTs work", {
     list("earliest"=4,"latest"=7)
   )
   expect_equal(
+    label = "Testing find_valid_month_interval() with non-sequential single year",
+    find_valid_month_interval(valid_months = c(4,5,7,8)),
+    list("earliest"=4,"latest"=8)
+  )
+  expect_equal(
     label = "Testing find_valid_month_interval() with non-sequential multi year",
     find_valid_month_interval(valid_months = c(11,12,2,3)),
     list("earliest"=11,"latest"=3)
@@ -29,7 +34,7 @@ test_that("Available LTs work", {
   expect_equal(
     label = "Testing find_valid_month_interval() with non-sequential multi year - gap first year",
     find_valid_month_interval(valid_months = c(10,12,2,3)),
-    list("earliest"=11,"latest"=3)
+    list("earliest"=10,"latest"=3)
   )
 })
 
