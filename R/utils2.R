@@ -461,6 +461,19 @@ gt_style_thresh_table <- function(gt_ob,table_type){
       gt::tab_options(column_labels.hidden = TRUE)
   }
   return(ret_gt)
+}
 
 
+
+admin_choices <- function(df,values, labels, sel_adm){
+  parent_admin_level <- readr::parse_number(values)-1
+  parent_admin_pcode_val <-  paste0("adm",parent_admin_level,"_pcode")
+  df_choices <- df |>
+    dplyr::filter(
+      parent_admin_level %in% sel_adm
+    ) |>
+    dplyr::distinct(df,.data[[c(values)]],.data[[labels]])
+  # df_choices <- dplyr::distinct(df,.data[[c(values)]],.data[[labels]])
+  ret <- rlang::set_names(df_choices[[values]],df_choices[[labels]])
+  return(ret)
 }
