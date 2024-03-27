@@ -7,7 +7,10 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_admin_cascade_ui <- function(id){
+mod_admin_cascade_ui <- function(id,
+                                 init_valid_months=c(5,6,7,8),
+                                 init_pub_months= c(3,4,5)
+                                 ){
   ns <- NS(id)
   tagList(
     fluidRow(
@@ -89,7 +92,8 @@ mod_admin_cascade_ui <- function(id){
           inputId = ns("valid_mo1"), # time of interest
           choices = c(1:12) |>
             rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
-          selected = c(4,5),
+          # selected = c(5,6,7,8),
+          selected = init_valid_months,
           # inline=T,
           label = "Step 1: Select time period/window of concern"
         ),
@@ -98,7 +102,7 @@ mod_admin_cascade_ui <- function(id){
           label = "Step 2: For the time period of concern selected, You can select from the following forecast publications months:",
           choices = c(1:12) |>
             rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
-          selected = c(11,12,1,2, 3, 4),
+          selected = init_pub_months
         )
       ),
       column(
@@ -120,6 +124,8 @@ mod_admin_cascade_ui <- function(id){
 mod_admin_cascade_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
+
+
 
     # thes issue is that its choosing this always as the dataset...
     # so would need an action button to see the correct
@@ -209,6 +215,7 @@ mod_admin_cascade_server <- function(id){
       updateSelectizeInput(inputId = "sel_adm2", choices = nv_choices)
     })
 
+
     # filter to selected admin 2
     filt_adm2 <-  reactive({
       req(input$sel_adm2)
@@ -265,9 +272,11 @@ mod_admin_cascade_server <- function(id){
       )
     })
     adm_aggregated <- reactive({
+      req(adm_filt())
+      # browser()
       summarise_forecast_temporal_new(df = adm_filt(),
-                                     publication_month = input$pub_mo1,
-                                     valid_month = input$valid_mo1
+                                     publication_month = as.numeric(input$pub_mo1),
+                                     valid_month = as.numeric(input$valid_mo1)
                                      )
     }
     )
@@ -289,8 +298,7 @@ mod_admin_cascade_server <- function(id){
     observeEvent(
       list(input$sel_adm1,
            req(input$analysis_level%in% c("adm1_pcode","adm2_pcode","adm3_pcode"))
-      )
-           ,{
+      ),{
         gdf_adm <- lgdf[["adm1_pcode"]]
         leaflet::leafletProxy(mapId = "map_choro") |>
           # leaflet::clearShapes() |>

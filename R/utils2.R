@@ -97,7 +97,7 @@ classify_historical <- function(
     )
 
   df_classified <- df |>
-    dplyr::left_join(
+    dplyr::inner_join(
       thresh_table_long
     ) |>
     dplyr::mutate(
@@ -110,7 +110,10 @@ run_thresholding2 <-  function(df,
                               leadtimes,
                               analysis_level
 ){
-  # browser()
+
+
+
+
 
 # create percentile threshold table
   df_thresholds <- threshold_values(
@@ -460,38 +463,45 @@ summarise_forecast_temporal_new <- function(df,
                                            publication_month,
                                            valid_month_arg){
   valid_month_arg_values <- as.numeric(valid_month_arg)
-
-  df_filt1 <- df |>
+  df |>
     dplyr::group_by(
+      pub_date,
+    dplyr::across(
+      dplyr::any_of(
+        dplyr::matches("adm\\d_[pe]"))),
+
+  ) |>
+    dplyr::filter(all(valid_month_arg %in% valid_month),
+           valid_month %in% valid_month_arg) |>
+    # non-consequential arrange just makes trouble shooting nicer.
+    # dplyr::arrange(
+    #     dplyr::matches("adm\\d_[pe]"), pub_date, lt
+    # ) |>
+    dplyr::group_by(
+      pub_date,
       dplyr::across(
         dplyr::any_of(
           dplyr::matches("adm\\d_[pe]"))),
-      pub_date
-    ) |>
-    dplyr::filter(
-      pub_month %in% publication_month,
-      valid_month %in% valid_month_arg_values # i don't like this equality
-    )
-
-  df_filt2 <- df_filt1 |>
-    # dplyr::group_by(pub_date) |>
-    dplyr::filter(
-      all(valid_month %in% valid_month_arg_values)
-    )
-
-  df_filt2 |>
-    dplyr::summarise(
-      # sum the rainfall for each pub date (across lts)
-      value = sum(value),
-
-      # grab min lt w/ each pub date.
-      lt= min(lt),
-      .groups = "drop"
 
     ) |>
     dplyr::mutate(
-      yr_date = lubridate::floor_date(pub_date, "year")
-    )
+      count = length(unique(lt))
+    ) |>
+    dplyr::summarise(
+      value = sum(value),
+      # **min() - BECAUSE**  for MJJA (5,6,7,8) at each pub_date we have a set of leadtimes
+      # for EXAMPLE in March we have the following leadtimes 2
+      # 2 : March + 2 = May,
+      # 3 : March + 3 = June,
+      # 4 : March + 4 = July
+      # 5:  March + 5 = Aug
+      # Therefore when we sum those leadtime precip values we take min() of lt integer so we get the leadtime to first month being aggregated
+      lt = min(lt),
+      .groups = "drop"
+    ) |>
+      dplyr::mutate(
+        yr_date = lubridate::floor_date(pub_date, "year")
+      )
 }
 
 
@@ -561,10 +571,6 @@ summarise_forecast_temporal2 <- function(df,
 #'
 #' @examples
 threshold_values <- function(df,slider_rps){
-
-  # browser()
-
-
   l_quantile_thresholds <- slider_rps |>
     purrr::imap(
       \(rp,nm){

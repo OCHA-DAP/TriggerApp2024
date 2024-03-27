@@ -28,6 +28,7 @@ mod_rp_analysis_individual_server <- function(id,l_inputs){
 
     ldf_historical <- reactive({
       req(l_inputs$adm_aggregated())
+      # browser()
       run_thresholding2(
         df = l_inputs$adm_aggregated(),
         leadtimes = l_inputs$leadtimes(),

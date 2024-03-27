@@ -38,7 +38,7 @@ lgdf <- set_names(admin_layer_names,admin_layer_names) |>
 
 
 # loop through list of sf objects and put the areas in long format and bind together
-df_area_lookup <- lgdf |>
+eth_area_lookup <- lgdf |>
   imap(
   \(gdf_tmp,nm_tmp){
   df_id <- str_extract(
@@ -58,9 +58,61 @@ df_area_lookup <- lgdf |>
 
 
 # write as parquet to data folder
+if(only_eth){
+  df_area_lookup |>
+    write_parquet(
+      file.path("data",
+                "df_eth_admin_area_lookup.parquet")
+    )
+
+}
+
+
+
+fp_lgdf <-     file.path(
+  Sys.getenv("AA_DATA_DIR"),
+  "public",
+  "processed",
+  "lac",
+  "lac_all_cod_adms.rds"
+)
+lgdf_lac <- read_rds(fp_lgdf)
+
+lac_df_area_lookup <- lgdf_lac |>
+  imap(\(gdf_tmp,nm_tmp){
+
+    gdf_tmp_area <- gdf_tmp |>
+      rename_with(
+      ~str_replace(.x,"_es","_en")
+    ) %>%
+      mutate(
+        area= as.numeric(st_area(st_geometry(.)))
+      ) |>
+      select(
+        matches("^adm\\d_[ep]|^area|pct_area")
+      )
+
+    df_id <- str_extract(
+      nm_tmp,
+      "adm\\d"
+    )
+    gdf_tmp_area |>
+      st_drop_geometry() |>
+      select(starts_with(df_id),area) |>
+      rename_with(.cols = matches(df_id),.fn = function(nm_tmp) str_replace(nm_tmp,"adm\\d","adm")) |>
+      mutate(
+        admin_level = df_id
+      )
+
+  }) |>
+  list_rbind()
+
+df_area_lookup <- bind_rows(
+  eth_area_lookup,
+  lac_df_area_lookup
+)
 df_area_lookup |>
   write_parquet(
     file.path("data",
-              "df_eth_admin_area_lookup.parquet")
+              "df_admin_area_lookup.parquet")
   )
-

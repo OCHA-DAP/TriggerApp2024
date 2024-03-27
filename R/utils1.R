@@ -16,7 +16,7 @@ load_df_forecast <-  function(dataset="mars_lac"){
 
 
   if(dataset=="mars_lac"){
-    arrow::read_parquet("data/df_mars_historical.parquet")
+    ret <- arrow::read_parquet("data/df_mars_historical.parquet")
   }
   if(dataset=="mars_eth"){
     eth_files <- stringr::str_subset(list.files('data'),pattern = "eth")
@@ -26,17 +26,38 @@ load_df_forecast <-  function(dataset="mars_lac"){
     )
     adm_level_labels <- stringr::str_extract(eth_files,"adm\\d")
 
-    purrr::map(
+    ret <- purrr::map(
       rlang::set_names(fp_eth_files, adm_level_labels),
       \(fp_tmp){
         arrow::read_parquet(
-         fp_tmp
+          fp_tmp
         )
       }
-
     )
 
   }
+  if(dataset=="combined"){
+    comb_files <- stringr::str_subset(list.files('data'),pattern = "df_mars_zonal")
+    fp_comb_files <- file.path(
+      "data",
+      comb_files
+    )
+    adm_level_labels <- stringr::str_extract(fp_comb_files,"adm\\d")
+
+    lgdf_adm0_2 <- purrr::map(
+      rlang::set_names(fp_comb_files, adm_level_labels),
+      \(fp_tmp){
+        arrow::read_parquet(
+          fp_tmp
+        )
+      }
+    )
+    lgdf_adm0_2$adm3 <- arrow::read_parquet(file.path("data",
+                                                      "df_eth_mars_zonal_adm3.parquet")
+    )
+    ret <- lgdf_adm0_2
+  }
+  return(ret)
 }
 
 
@@ -111,10 +132,10 @@ get_slider_values <-  function(input,
 # }
 
 thresholds_from_sliders <- function(df,
-                                   # groups,
-                                   input,
-                                   publication_months,
-                                   valid_months){
+                                    # groups,
+                                    input,
+                                    publication_months,
+                                    valid_months){
 
   slider_values <- get_slider_values(
     input=input,
@@ -137,8 +158,8 @@ thresholds_from_sliders <- function(df,
             # !!!grouper
             dplyr::across(
               dplyr::any_of(matches("adm\\d_[ep]"))
-              )
-            ) |>
+            )
+          ) |>
           dplyr::reframe(
             !!rlang::sym(as.character(nm)) := quantile(value,q_rp)
           )
@@ -278,7 +299,7 @@ find_pub_mos <- function(valid_months){
 
 load_pub_mo_list <- function(lt=6){
   rlang::set_names(c(1:12),
-            lubridate::month(c(1:12),label=T,abbr=T)
+                   lubridate::month(c(1:12),label=T,abbr=T)
   ) |>
     purrr:::map(\(mo_int){
       start_mo_int <- mo_int-lt
@@ -338,7 +359,7 @@ find_valid_month_interval <- function(valid_months){
   return(
     list(earliest = min_month, latest = max_month)
   )
-  }
+}
 
 
 
@@ -375,22 +396,22 @@ adjustable_leadtimes_robust <-  function(publication_months,valid_months){
     publication_months[dec_idx] # issue if skip Dec?
     prev_year_mos <- publication_months[1:dec_idx]
     prev_year_dates <- lubridate::as_date(paste0("2020-", formatC(prev_year_mos,
-                                                       digits = 2,
-                                                       flag = "0",
-                                                       width = 2),"-01"))
+                                                                  digits = 2,
+                                                                  flag = "0",
+                                                                  width = 2),"-01"))
     next_year_mos <-  publication_months[(dec_idx+1):length(publication_months)]
     next_year_dates <- lubridate::as_date(paste0("2021-", formatC(next_year_mos,
-                                                       digits = 2,
-                                                       flag = "0",
-                                                       width = 2),"-01"))
+                                                                  digits = 2,
+                                                                  flag = "0",
+                                                                  width = 2),"-01"))
     all_dates <- c(prev_year_dates,next_year_dates)
     min_pub_date <- min(all_dates)
     # not designed yet for multi yr validation
     min_valid_month <- min(as.numeric(valid_months))
     min_valid_date <- lubridate::as_date(paste0("2021-", formatC(min_valid_month,
-                                                      digits = 2,
-                                                      flag = "0",
-                                                      width = 2),"-01"))
+                                                                 digits = 2,
+                                                                 flag = "0",
+                                                                 width = 2),"-01"))
     # this should be improved -- go direct from days to months rather than arith
     lts_days <- (min_valid_date- all_dates)+1
     # for some reaso counting 30 days as 0 months --
@@ -480,7 +501,7 @@ ui_update_admin <-  function(session=session,
                              list_df,
                              admin_level_choices = "adm2"
 
-                             ){
+){
 
   update_id <- paste0("sel_",admin_level_choices)
   update_en <- paste0(admin_level_choices,"_en")
@@ -496,14 +517,14 @@ ui_update_admin <-  function(session=session,
     dplyr::distinct(!!!rlang::syms(c(update_pcode,update_en)))
 
   updated_choices <- rlang::set_names(df_ret[[update_pcode]],
-                          df_ret[[update_en]])
+                                      df_ret[[update_en]])
 
 
-    updateSelectizeInput(session,
-                         inputId = update_id,
-                         choices = updated_choices#,
-                         # selected= updated_choices[1:2] # kinda works.
-    )
+  updateSelectizeInput(session,
+                       inputId = update_id,
+                       choices = updated_choices#,
+                       # selected= updated_choices[1:2] # kinda works.
+  )
 
 
 
@@ -517,9 +538,9 @@ ui_update_admin <-  function(session=session,
 
 
 filter_aoi <-  function(list_df,
-                         analysis_level,
-                         admin_pcode_name,
-                         admin_pcode_values){
+                        analysis_level,
+                        admin_pcode_name,
+                        admin_pcode_values){
   df_name <- stringr::str_extract(analysis_level,"adm\\d")
 
   df_sel <- list_df[[df_name]]
@@ -565,8 +586,8 @@ aggregate_forecast <- function(
 #'
 #' @examples
 summarise_forecast_temporal <- function(df,
-                                     publication_month,
-                                     valid_month_arg){
+                                        publication_month,
+                                        valid_month_arg){
   valid_month_arg_values <- as.numeric(valid_month_arg)
 
   df_filt1 <- df |>
@@ -600,7 +621,7 @@ summarise_forecast_temporal <- function(df,
     dplyr::mutate(
       yr_date = lubridate::floor_date(pub_date, "year")
     )
-  }
+}
 
 
 
@@ -628,11 +649,11 @@ admin_ids <-  function(analysis_level,label_only=T){
 plot_historical <-  function(df,
                              analysis_level,
                              plot_title
-                             ){
+){
   strata_col <- admin_ids(
     analysis_level,
     label_only = T
-    )
+  )
   df |>
     ggplot2::ggplot(
       aes(x= pub_date,
