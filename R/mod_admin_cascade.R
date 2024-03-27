@@ -9,10 +9,18 @@
 #' @importFrom shiny NS tagList
 mod_admin_cascade_ui <- function(id,
                                  init_valid_months=c(5,6,7,8),
-                                 init_pub_months= c(3,4,5)
+                                 init_pub_months= c(3,4,5),
+                                 window_label
                                  ){
   ns <- NS(id)
   tagList(
+    fluidRow(
+      column(
+        2,
+        textInput( inputId = ns("window_name"),
+                   label = "Window Name",
+                   value = window_label),
+      )),
     fluidRow(
       column(
         3,
@@ -447,15 +455,9 @@ mod_admin_cascade_server <- function(id){
             })
         )})
 
-
-    output$fu <- renderTable({
-      adm_aggregated() |>
-        # head()
-        dplyr::sample_n(size =20)
-    })
-
     return(
       list(
+        window_name = reactive({input$window_name}),
         analysis_level = reactive({ input$analysis_level }),
         adm_aggregated = reactive({adm_aggregated()}),
         publication_months = reactive({input$pub_mo1}),

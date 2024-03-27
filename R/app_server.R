@@ -18,11 +18,16 @@ app_server <- function(input, output, session) {
   mod_intro_server("intro_1")
   # mod_admin_filter_server("admin_filter_1")
   w1_adm_inputs <- mod_admin_cascade_server("window_1")
-  mod_rp_analysis_individual_server("window_1",l_inputs = w1_adm_inputs)
+  w1_data_classified <- mod_rp_analysis_individual_server("window_1",l_inputs = w1_adm_inputs)
 
 
   w2_adm_inputs <- mod_admin_cascade_server("window_2")
-  mod_rp_analysis_individual_server("window_2",l_inputs = w2_adm_inputs)
+  w2_data_classified <- mod_rp_analysis_individual_server("window_2",l_inputs = w2_adm_inputs)
+
+  mod_combine_windows_server("combine_windows",
+                             l_w1_inputs =w1_data_classified,
+                             l_w2_inputs = w2_data_classified
+  )
   # w1_temporal <-  mod_temporal_server("temporal_1")
 
 
@@ -47,8 +52,5 @@ app_server <- function(input, output, session) {
   # w2_data_classified <- mod_historical_main_viz_server("historical_window_2",
   #                                l_inputs = w2_var_inputs)
   #
-  # mod_combine_windows_server("combine_windows",
-  #                            l_w1_inputs =w1_data_classified,
-  #                            l_w2_inputs = w2_data_classified
-  #                            )
+
 }

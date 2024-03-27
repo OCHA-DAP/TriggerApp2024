@@ -78,6 +78,36 @@ mod_rp_analysis_individual_server <- function(id,l_inputs){
         )
     })
 
+    yearly_flags_to_compare_with_other_windows <- reactive({
+
+      # so basically if 1 strata --- we can just call this the combined strata
+      if(length(unique(ldf_historical()$yearly_flags_lgl[[l_inputs$analysis_level()]]))==1){
+        ret <- ldf_historical()$yearly_flags_lgl
+      }
+      else{
+        # browser()
+        ret <-  ldf_historical()$yearly_flags_lgl_combined
+      }
+
+      return(
+        ret |>
+          dplyr::select(yr_date,lgl_flag) |>
+          dplyr::mutate(
+            window = l_inputs$window_name()
+          )
+      )
+      # if >= 1 strata ... let's take the one we combined in run_thresholds
+    })
+
+
+    return(
+      list(
+        # df_any_activation_per_year =reactive({ldf_historical()$yearly_flags_lgl}),
+        df_window_compare =reactive({yearly_flags_to_compare_with_other_windows()}),
+        analysis_level =reactive({l_inputs$analysis_level()})
+      )
+    )
+
 
 
 
