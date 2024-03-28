@@ -1,0 +1,51 @@
+---
+title: "01_aggregating_forecats"
+format: html
+editor: visual
+---
+
+## Intro
+
+Key takeaway: average forecast calculations calculated from zonal stats with admin 0 can vary slightly from those aggregated from admin 2/3 zonal stat results. This is due to topological differences in the shape file. This is not an a big issue, but worth noting as it could come up again.
+
+
+So far, methodology for calculating average forecasts per admin zone in TriggerApp are as follows:
+
+1. calculate average forecast at most granular admin level
+2. aggregate average forecast up to admin levels based on average weighted by area
+
+
+```{r}
+library(tidyverse)
+library(lealet)
+```
+
+```{r}
+# file path to shape files adm 0- 2
+fp_lgdf <-     file.path(
+      Sys.getenv("AA_DATA_DIR"),
+      "public",
+      "processed",
+      "lac",
+      "lac_all_cod_adms.rds"
+    )
+
+lgdf_lac <- read_rds(fp_lgdf)
+```
+
+The demo TriggerApp as of 2024-03-28 is designed to calculate thresholds for all of the Central America Dry Corridor countries (admin 0-2) and Ethiopia (admin 0-3). Using this app we can easy replicate the entire CADC trigger framework thresholds. However, one might notice small decimal differences in the threshold between those calculated here and in the official framework. That is due to the fact that the ones in the framework are calculated by running zonal statistics on the admin 0 COD polygons where as the ones in the App were first calculated at admin 2 and then aggregated to admin 0.
+
+The plot below shows that the admin 0 file includes the large lake of Ometepe, whereas the admin 2 doesn't. These types of differences will create the small differences in final thresholds
+
+```{r}
+nica_adm0 <- lgdf_lac$adm0 |> 
+  filter(adm0_es=="Nicaragua")
+nica_adm2 <- lgdf_lac$adm2 |> 
+  filter(adm0_es=="Nicaragua")
+leaflet::leaflet() |> 
+  leaflet::addTiles() |> 
+  leaflet::addPolygons(data= nica_adm0,fillColor = "blue",color = "white",opacity=1,fillOpacity = 1) |> 
+  leaflet::addPolygons(data= nica_adm2,fillColor="red",fillOpacity = 1)
+
+```
+
