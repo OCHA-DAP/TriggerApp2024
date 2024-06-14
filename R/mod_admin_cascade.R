@@ -285,10 +285,9 @@ mod_admin_cascade_server <- function(id){
         leaflet::addTiles() |>
         leaflet::addPolygons(data=gdf_adm0,
                              fillColor = "white",
-                             fillOpacity = 1,
-                             color = unname(map_line_colors["level_4"])
-                             # fillOpacity = 0.7,
-                             # color = unname(map_line_colors["level_4"]),weight = 1
+                             fillOpacity = 0.7,
+                             color = unname(map_line_colors["level_4"]),
+                             weight = 1
         ) |>
         leaflet::fitBounds(
           lng1 =df_adm_bbox[1],lat1 = df_adm_bbox[2],lng2 = df_adm_bbox[3],lat2 = df_adm_bbox[4]
