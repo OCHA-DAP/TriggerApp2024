@@ -458,9 +458,7 @@ union_forecast_to_strata <- function(df,df_area,analysis_level){
 
 
 }
-df_tmp <- ldf$adm1
-df_tmp<- df_tmp |>
-  dplyr::filter(adm0_en == "Afghanistan")
+
 summarise_forecast_temporal_new <- function(df,
                                            publication_month,
                                            valid_month_arg){
