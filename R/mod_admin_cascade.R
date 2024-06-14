@@ -302,7 +302,7 @@ mod_admin_cascade_server <- function(id){
         gdf_adm <- lgdf[["adm1_pcode"]]
         leaflet::leafletProxy(mapId = "map_choro") |>
           # leaflet::clearShapes() |>
-          leaflet::addPolygons(data=lgdf[["adm1_pcode"]],
+          leaflet::addPolygons(data=dplyr::filter(lgdf[["adm1_pcode"]], adm0_pcode %in% c(input$sel_adm0)),
                                fillColor ="white",
                                color = "darkgrey",
                                fillOpacity = 0.5
