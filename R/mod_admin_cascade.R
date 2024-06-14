@@ -298,30 +298,40 @@ mod_admin_cascade_server <- function(id){
       list(input$sel_adm1,
            req(input$analysis_level%in% c("adm1_pcode","adm2_pcode","adm3_pcode"))
       ),{
-        # browser()
-        gdf_adm <- lgdf[["adm1_pcode"]]
+        gdf_adm0 <- dplyr::filter(lgdf[["adm0_pcode"]] ,adm0_pcode %in% c(input$sel_adm0))
+
+        gdf_adm1 <- dplyr::filter(lgdf[["adm1_pcode"]], adm0_pcode %in% c(input$sel_adm0))
+        gdf_adm1_sel <- dplyr::filter(gdf_adm1,adm1_pcode %in% c(input$sel_adm1))
+
+        # casting to line allows us to plot on top of other layers, but have
+        # layers underneath still show popup
+        # **NOTE** can get performance improvement by pre-casting admin 0s
+        gdf_adm0_line <- sf::st_cast(gdf_adm0,"MULTILINESTRING")
+
+
         leaflet::leafletProxy(mapId = "map_choro") |>
           # leaflet::clearShapes() |>
-          leaflet::addPolygons(data=dplyr::filter(lgdf[["adm1_pcode"]], adm0_pcode %in% c(input$sel_adm0)),
+          leaflet::addPolygons(data=gdf_adm1,
                                fillColor ="white",
                                color = "darkgrey",
-                               fillOpacity = 0.5
+                               fillOpacity = 0.5,
+                               popup = ~adm1_en
                                # weight = 1
                                ) |>
-          leaflet::addPolygons(data=dplyr::filter(lgdf[["adm1_pcode"]],adm1_pcode %in% c(input$sel_adm1)),
-                               fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_3"]),
-                               # weight = 1
-                               fillOpacity = 1,
-                               popup = ~adm1_en,
-                               label = gdf_adm[["adm1_en"]]
-                               ) |>
-          leaflet::addPolygons(data=lgdf[["adm0_pcode"]] |>
-                                 dplyr::filter(adm0_pcode %in% input$sel_adm0),
-                               fillColor = NULL,
-                               fillOpacity = 0,
-                               color = unname(map_line_colors["level_4"]),weight = 1.5
+          leaflet::addPolygons(
+            data=gdf_adm1_sel,
+            fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_3"]),
+            # weight = 1
+            fillOpacity = 1,
+            popup = ~adm1_en
+            # label = ~adm1_en
+            # label = gdf_adm1_sel[["adm1_en"]]
+          ) |>
+          leaflet::addPolylines(
+            data=gdf_adm0_line,
+            color = unname(map_line_colors["level_4"]),weight = 1.5
           )
-    })
+      })
     # Map out admin 2s
     observeEvent(
       list(input$sel_adm1,
