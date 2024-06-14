@@ -148,27 +148,6 @@ mod_admin_cascade_server <- function(id){
       return(ldf[[ds_id]])
       })
 
-    output$map_choro <- leaflet::renderLeaflet({
-      req(input$sel_adm0)
-      # browser()
-
-      gdf_adm0 <- lgdf[["adm0_pcode"]] |>
-        dplyr::filter(
-          adm0_pcode %in% input$sel_adm0
-        )
-      df_adm_bbox <- unname(sf::st_bbox(gdf_adm0))
-
-      leaflet::leaflet() |>
-        leaflet::addTiles() |>
-        leaflet::addPolygons(data=gdf_adm0,
-                             fillColor = "white",
-                             fillOpacity = 0.7,
-                             color = unname(map_line_colors["level_4"]),weight = 1
-                             ) |>
-      leaflet::fitBounds(
-        lng1 =df_adm_bbox[1],lat1 = df_adm_bbox[2],lng2 = df_adm_bbox[3],lat2 = df_adm_bbox[4]
-      )
-    })
 
     # okay get the dataset and first provide the country options
     observeEvent(
@@ -252,18 +231,6 @@ mod_admin_cascade_server <- function(id){
     })
 
 
-    map_fill_colors <- c(
-      top_layer = "#F2645A", # tomato-hdx
-      middle_layer = "#CCCCCC" ,# grey-medium
-      bottom_layer = "#EEEEEE"
-      )
-    map_line_colors <- c(
-      level_1 = "#888888", # tomato-hdx
-      level_2 = "white" ,# grey-medium
-      level_3 = "white",
-      level_4= "black"
-      )
-
 
     #   observe({
     #     if(input$analysis_level=="adm3_pcode"){
@@ -290,23 +257,82 @@ mod_admin_cascade_server <- function(id){
     }
     )
 
+# Map ---------------------------------------------------------------------
+
+    map_fill_colors <- c(
+      top_layer = "#F2645A", # tomato-hdx
+      middle_layer = "#CCCCCC" ,# grey-medium
+      bottom_layer = "#EEEEEE"
+    )
+    map_line_colors <- c(
+      level_1 = "#888888", # tomato-hdx
+      level_2 = "white" ,# grey-medium
+      level_3 = "white",
+      level_4= "black"
+    )
+
+    output$map_choro <- leaflet::renderLeaflet({
+      req(input$sel_adm0)
+      # browser()
+
+      gdf_adm0 <- lgdf[["adm0_pcode"]] |>
+        dplyr::filter(
+          adm0_pcode %in% input$sel_adm0
+        )
+      df_adm_bbox <- unname(sf::st_bbox(gdf_adm0))
+
+      leaflet::leaflet() |>
+        leaflet::addTiles() |>
+        leaflet::addPolygons(data=gdf_adm0,
+                             fillColor = "white",
+                             fillOpacity = 1,
+                             color = unname(map_line_colors["level_4"])
+                             # fillOpacity = 0.7,
+                             # color = unname(map_line_colors["level_4"]),weight = 1
+        ) |>
+        leaflet::fitBounds(
+          lng1 =df_adm_bbox[1],lat1 = df_adm_bbox[2],lng2 = df_adm_bbox[3],lat2 = df_adm_bbox[4]
+        )
+    })
+
+    # only working for ethiopia
+    observeEvent(
+      list(input$sel_adm0,
+           req(input$analysis_level%in% c("adm0_pcode","adm1_pcode","adm2_pcode","adm3_pcode"))
+      ),{
+        # browser()
+        gdf_adm <- lgdf[["adm0_pcode"]]
+        leaflet::leafletProxy(mapId = "map_choro") |>
+          # leaflet::clearShapes() |>
+          leaflet::addPolygons(data=dplyr::filter(gdf_adm,adm0_pcode %in% c(input$sel_adm0)),
+                               fillColor ="white",
+                               color = "darkgrey",
+                               fillOpacity = 0.5
+                               # weight = 1
+          )
+      }
+    )
+
     observeEvent(
       list(input$sel_adm1,
            req(input$analysis_level%in% c("adm1_pcode","adm2_pcode","adm3_pcode"))
       ),{
+        # browser()
         gdf_adm <- lgdf[["adm1_pcode"]]
         leaflet::leafletProxy(mapId = "map_choro") |>
           # leaflet::clearShapes() |>
           leaflet::addPolygons(data=lgdf[["adm1_pcode"]],
                                fillColor ="white",
                                color = "darkgrey",
-                               fillOpacity = 0.5,
-                               weight = 1) |>
-          leaflet::addPolygons(data=dplyr::filter(gdf_adm,adm1_pcode %in% c(input$sel_adm1)),
+                               fillOpacity = 0.5
+                               # weight = 1
+                               ) |>
+          leaflet::addPolygons(data=dplyr::filter(lgdf[["adm1_pcode"]],adm1_pcode %in% c(input$sel_adm1)),
                                fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_3"]),
+                               # weight = 1
                                fillOpacity = 1,
                                popup = ~adm1_en,
-                               label = ~as.character(adm1_en)
+                               label = gdf_adm[["adm1_en"]]
                                ) |>
           leaflet::addPolygons(data=lgdf[["adm0_pcode"]] |>
                                  dplyr::filter(adm0_pcode %in% input$sel_adm0),
