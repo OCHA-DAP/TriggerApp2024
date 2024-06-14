@@ -20,22 +20,22 @@ mod_admin_cascade_ui <- function(id,
         textInput( inputId = ns("window_name"),
                    label = "Window Name",
                    value = window_label),
-      )),
-    fluidRow(
+      ),
       column(
         3,
-    selectInput(
-      inputId = ns("analysis_level"),
-      label = "Select Analysis Level",
-      choices = c(
-        Country = "adm0_pcode",
-        `Admin 1` = "adm1_pcode",
-        `Admin 2` = "adm2_pcode",
-        `Admin 3` = "adm3_pcode"
-      ),
-      selected = "adm0_pcode"
-    )
-    ),
+        selectInput(
+          inputId = ns("analysis_level"),
+          label = "Select Analysis Level",
+          choices = c(
+            Country = "adm0_pcode",
+            `Admin 1` = "adm1_pcode",
+            `Admin 2` = "adm2_pcode",
+            `Admin 3` = "adm3_pcode"
+          ),
+          selected = "adm0_pcode"
+        )
+      )),
+    fluidRow(
     column(
       2,
     conditionalPanel(
@@ -324,6 +324,7 @@ mod_admin_cascade_server <- function(id){
             # weight = 1
             fillOpacity = 1,
             popup = ~adm1_en
+            ## **NOTE** not sure why these both freeze app"
             # label = ~adm1_en
             # label = gdf_adm1_sel[["adm1_en"]]
           ) |>
