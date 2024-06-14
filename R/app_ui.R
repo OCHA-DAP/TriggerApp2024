@@ -29,7 +29,7 @@ app_ui <- function(request) {
                     mod_admin_cascade_ui("window_2",init_valid_months= c(9,10,11),init_pub_months= c(6,7,8), window_label= "Window 2"),
                     mod_rp_analysis_individual_ui("window_2"),
                     mod_combine_windows_ui("combine_windows")
-                    ),
+                    )
 
         # mod_temporal_ui("temporal_1")
         # mod_admin_filter_ui("admin_filter_1")

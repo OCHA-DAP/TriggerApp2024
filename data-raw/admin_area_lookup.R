@@ -116,3 +116,65 @@ df_area_lookup |>
     file.path("data",
               "df_admin_area_lookup.parquet")
   )
+
+
+# add in afg area and  overwrite
+
+df_lookup <- read_parquet(
+    file.path("data",
+              "df_admin_area_lookup.parquet")
+  )
+
+
+# load in afg shapefiles
+zf <- "../ds-aa-afg-drought/afg_admbnda_agcho.zip"
+zf_vp <- paste0("/vsizip/",zf)
+st_layers(zf_vp)
+
+lgdf_afg <- map(
+  c(adm0_pcode = "afg_admbnda_adm0_agcho_20211117",
+    adm1_pcode = "afg_admbnda_adm1_agcho_20211117",
+    adm2_pcode = "afg_admbnda_adm2_agcho_20211117"),
+  \(lyr){
+    gdf <- st_read(zf_vp,lyr) |>
+      janitor::clean_names() |>
+      dplyr::select(matches("adm\\d_[pe]"))
+    sf::st_simplify(gdf,dTolerance = 1000)
+  }
+)
+
+
+afg_df_area_lookup <- lgdf_afg |>
+  imap(\(gdf_tmp,nm_tmp){
+
+    gdf_tmp_area <- gdf_tmp %>%
+      mutate(
+        area= as.numeric(st_area(st_geometry(.)))
+      ) |>
+      select(
+        matches("^adm\\d_[ep]|^area|pct_area")
+      )
+
+    df_id <- str_extract(
+      nm_tmp,
+      "adm\\d"
+    )
+    gdf_tmp_area |>
+      st_drop_geometry() |>
+      select(starts_with(df_id),area) |>
+      rename_with(.cols = matches(df_id),.fn = function(nm_tmp) str_replace(nm_tmp,"adm\\d","adm")) |>
+      mutate(
+        admin_level = df_id
+      )
+
+  }) |>
+  list_rbind()
+
+bind_rows(
+  df_lookup,
+  afg_df_area_lookup
+) |>
+  write_parquet(
+    file.path("data",
+              "df_admin_area_lookup.parquet")
+  )

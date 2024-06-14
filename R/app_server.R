@@ -6,17 +6,12 @@
 #' @noRd
 app_server <- function(input, output, session) {
   gghdx::load_source_sans_3()
-  # ldf <- load_df_forecast(dataset = "mars_eth")
   ldf <- load_df_forecast(dataset = "combined")
-  # ldf <- load_df_forecast(dataset = "mars_eth")
-  # df_area_lookup <- arrow::read_parquet(file.path("data","df_eth_admin_area_lookup.parquet"))
+
   df_area_lookup <- arrow::read_parquet(file.path("data","df_admin_area_lookup.parquet"))
   lgdf <- readr::read_rds(file.path("data","lgdf_combined.rds"))
 
-  # mod_historical_process_simp_server("historical_process_simp_1")
-  # browser()
   mod_intro_server("intro_1")
-  # mod_admin_filter_server("admin_filter_1")
   w1_adm_inputs <- mod_admin_cascade_server("window_1")
   w1_data_classified <- mod_rp_analysis_individual_server("window_1",l_inputs = w1_adm_inputs)
 

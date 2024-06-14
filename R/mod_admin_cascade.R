@@ -141,6 +141,7 @@ mod_admin_cascade_server <- function(id){
     # and then only filter to admin 2 , you will still just get the admin 3 table
     # rendered and filtered to the admin 2... its not going to show the
     # correct table till you get to admin 3... but htats not even really working correctl yet either
+
     dataset_chosen <- reactive({
       req(input$analysis_level)
       ds_id <- stringr::str_remove(input$analysis_level,"_pcode")
@@ -176,6 +177,7 @@ mod_admin_cascade_server <- function(id){
       req(input$analysis_level %in% c("adm0_pcode","adm1_pcode","adm2_pcode","adm3_pcode"))
       )
       ,{
+
       df_choices <- dplyr::distinct(dataset_chosen(),adm0_pcode,adm0_en)
       nv_choices <- rlang::set_names(df_choices$adm0_pcode,df_choices$adm0_en)
       # freezeReactiveValue(input, "sel_adm0")
@@ -185,7 +187,6 @@ mod_admin_cascade_server <- function(id){
     # filter admin 0
     filt_adm0 <- reactive({
       req(input$sel_adm0)
-      # browser()
       print(dataset_chosen())
       dplyr::filter(dataset_chosen(),adm0_pcode %in% input$sel_adm0)
     })
@@ -281,13 +282,14 @@ mod_admin_cascade_server <- function(id){
     })
     adm_aggregated <- reactive({
       req(adm_filt())
-      # browser()
+
       summarise_forecast_temporal_new(df = adm_filt(),
                                      publication_month = as.numeric(input$pub_mo1),
                                      valid_month = as.numeric(input$valid_mo1)
                                      )
     }
     )
+
     observeEvent(
       list(input$sel_adm1,
            req(input$analysis_level%in% c("adm1_pcode","adm2_pcode","adm3_pcode"))

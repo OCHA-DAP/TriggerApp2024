@@ -1,7 +1,16 @@
+#' this code takes pre-processing used in other _targets pipelines and adds them
+#' here for transparency and reproducibility
+
 library(terra)
 library(sf)
 library(exactextractr)
 library(tidyverse)
+library(arrow)
+
+
+# Functinos ---------------------------------------------------------------
+
+
 aggregate_tabular_forecast <- function(df,
                                        report_level){
 
@@ -64,7 +73,7 @@ aggregate_tabular_forecast <- function(df,
 #' r <- load_mars_raster(gdb = gdb_ecmwf_mars_tifs)
 #' zonal_ecmwf_mars(r_wrapped = r, zone = gdf_aoi_adm$adm0, stat = "mean")
 #' }
-zonal_ecmwf_mars <- function(r_wrapped = r_ecmwf_mars,
+zonal_ecmwf_lac_mars <- function(r_wrapped = r_ecmwf_mars,
                              zone ,
                              stat = "mean",
                              cols_keep) {
@@ -116,7 +125,7 @@ zonal_ecmwf_mars <- function(r_wrapped = r_ecmwf_mars,
 #' )
 #' load_mars_raster(gdb = gdb_ecmwf_mars_tifs)
 #' }
-load_mars_raster <- function(gdb = gdb_ecmwf_mars_tifs,
+load_lac_mars_raster <- function(gdb = gdb_ecmwf_mars_tifs,
                              rm_name = "lac_seasonal-montly-individual-members_tprate-") {
   fps <- list.files(
     path = gdb, pattern = "\\.tif$",
@@ -147,7 +156,7 @@ fp_lgdf <-     file.path(
       "lac_all_cod_adms.rds"
     )
 
-r_lac <- load_mars_raster(gdb = gdb_ecmwf_mars_tifs)
+r_lac <- load_lac_mars_raster(gdb = gdb_ecmwf_mars_tifs)
 unwrap(r_lac) |> names()
 lgdf_lac <- read_rds(fp_lgdf)
 
@@ -163,7 +172,7 @@ gdf_adm2_lac <- lgdf_lac$adm2 |>
   )
 
 # extract to adm2
-df_ecmwf_zonal_adm2 <- zonal_ecmwf_mars(r_wrapped = r_lac,
+df_ecmwf_zonal_adm2 <- zonal_ecmwf_lac_mars(r_wrapped = r_lac,
                                         zone = gdf_adm2_lac,
                                         stat = 'mean',
                                         cols_keep = colnames(gdf_adm2_lac)
@@ -178,7 +187,6 @@ lgdf_zonal_lac <- map(
   }
 )
 
-library(arrow)
 
 # open each admin zonal file for ethiopia and
 # bind the resepctive admin zonal calcs for lac admins
@@ -205,6 +213,54 @@ imap(
     )
   }
 )
+
+
+# Stage 3 - add afg -------------------------------------------------------
+
+df_mars_afg_zonal_adm2 <- read_rds("../ds-aa-afg-drought/_targets/objects/df_mars_zonal")
+df_mars_afg_zonal_adm2 <- df_mars_afg_zonal_adm2 |>
+  mutate(
+    pub_month = month(pub_date),
+    valid_month = month(valid_date)
+  )
+lgdf_zonal_afg <- map(
+  c(adm0="adm0",adm1="adm1",adm2="adm2"),
+  \(rep_level_tmp){
+    aggregate_tabular_forecast(df = df_mars_afg_zonal_adm2,
+                               report_level = rep_level_tmp)
+  }
+)
+
+length(1981:2022) * 12 *6
+
+lgdf_combined_zonal <- map(  c(adm0="adm0",adm1="adm1",adm2="adm2"),
+                             \(adm_tmp){
+                               fp_gen <- paste0( "df_mars_zonal_",adm_tmp,".parquet")
+                               df_tmp <- arrow::read_parquet(file.path("data",fp_gen))
+                               afg_tmp <-  lgdf_zonal_afg[[adm_tmp]]
+                               bind_rows(
+                                 df_tmp,
+                                 afg_tmp
+                               )
+                             }
+)
+
+# now write these out as w/ generic names
+imap(
+  lgdf_combined_zonal,\(df_tmp,nm_tmp){
+    arrow::write_parquet(
+      df_tmp,
+      file.path("data",
+                paste0("df_mars_zonal_",nm_tmp,".parquet")
+      )
+    )
+  }
+)
+
+
+
+# combine shapefiles into common list -------------------------------------
+
 
 
 lgdf_eth <- read_rds("data/lgdf.rds")
@@ -247,18 +303,40 @@ p_lac_lgdf_simp1 <- lac_lgdf_simp1 |>
 # add pcode to name
 names(lac_lgdf_simp1) <- paste0(names(lac_lgdf_simp1),"_pcode")
 
+# load in afg shapefiles
+zf <- "../ds-aa-afg-drought/afg_admbnda_agcho.zip"
+zf_vp <- paste0("/vsizip/",zf)
+st_layers(zf_vp)
+
+lgdf_afg <- map(
+  c(adm0_pcode = "afg_admbnda_adm0_agcho_20211117",
+    adm1_pcode = "afg_admbnda_adm1_agcho_20211117",
+    adm2_pcode = "afg_admbnda_adm2_agcho_20211117"),
+  \(lyr){
+    gdf <- st_read(zf_vp,lyr) |>
+      janitor::clean_names() |>
+      dplyr::select(matches("adm\\d_[pe]"))
+    sf::st_simplify(gdf,dTolerance = 1000)
+  }
+)
+
+
+
 
 lgdf_shapes <- map(  c(adm0_pcode="adm0_pcode",adm1_pcode="adm1_pcode",adm2_pcode="adm2_pcode"),
                              \(adm_tmp){
                                eth_gdf <- lgdf_eth[[adm_tmp]]
                                lac_gdf <-  lac_lgdf_simp1[[adm_tmp]]
+                               afg_gdf <-  lgdf_afg[[adm_tmp]]
                                bind_rows(
                                  eth_gdf,
-                                 lac_gdf
+                                 lac_gdf,
+                                 afg_gdf
                                )
                              }
 )
 
+# ethiopia is the only one with adm3 level so let's just add it in like so:
 lgdf_shapes$adm3_pcode <- lgdf_eth$adm3_pcode
 
 lgdf_shapes |>

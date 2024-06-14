@@ -8,12 +8,10 @@ editor: visual
 
 Key takeaway: average forecast calculations calculated from zonal stats with admin 0 can vary slightly from those aggregated from admin 2/3 zonal stat results. This is due to topological differences in the shape file. This is not an a big issue, but worth noting as it could come up again.
 
-
 So far, methodology for calculating average forecasts per admin zone in TriggerApp are as follows:
 
-1. calculate average forecast at most granular admin level
-2. aggregate average forecast up to admin levels based on average weighted by area
-
+1.  calculate average forecast at most granular admin level
+2.  aggregate average forecast up to admin levels based on average weighted by area
 
 ```{r}
 library(tidyverse)
@@ -48,4 +46,3 @@ leaflet::leaflet() |>
   leaflet::addPolygons(data= nica_adm2,fillColor="red",fillOpacity = 1)
 
 ```
-
