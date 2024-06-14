@@ -344,13 +344,15 @@ load_pub_mo_list <- function(lt=6){
 #' find_month_range(m = c(11,12,1,2,3,4,5))
 #' find_month_range(m = sort(c(11,12,1,2,3)))
 #' find_month_range(m = sort(c(12,1,2,3)))
-#' find_month_range(valid_months = c(4,6,7))
-#' find_month_range(valid_months = c(10,11,12,1))
+#' find_month_range(m = c(4,6,7))
+#' find_month_range(m = c(10,11,12,1))
+#' find_month_range(m = c(11,12,1,2,3))
+#' find_month_range(m = c(1,2,3,11,12))
 #' }
 
 find_month_range <- function(m){
   m <- as.numeric(m)
-  diff_lag <- (m-dplyr::lag(m))>0
+  diff_lag <- (m-dplyr::lag(m))
 
   # experimenting to try to allow gaps in valid_months ####
   # all_seqs <- load_pub_mo_list(lt = 6)
