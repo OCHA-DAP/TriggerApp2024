@@ -295,24 +295,6 @@ mod_admin_cascade_server <- function(id){
         )
     })
 
-    # only working for ethiopia
-    observeEvent(
-      list(input$sel_adm0,
-           req(input$analysis_level%in% c("adm0_pcode","adm1_pcode","adm2_pcode","adm3_pcode"))
-      ),{
-        # browser()
-        gdf_adm <- lgdf[["adm0_pcode"]]
-        leaflet::leafletProxy(mapId = "map_choro") |>
-          # leaflet::clearShapes() |>
-          leaflet::addPolygons(data=dplyr::filter(gdf_adm,adm0_pcode %in% c(input$sel_adm0)),
-                               fillColor ="white",
-                               color = "darkgrey",
-                               fillOpacity = 0.5
-                               # weight = 1
-          )
-      }
-    )
-
     observeEvent(
       list(input$sel_adm1,
            req(input$analysis_level%in% c("adm1_pcode","adm2_pcode","adm3_pcode"))
