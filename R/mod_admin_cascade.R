@@ -1,3 +1,7 @@
+
+# UI section --------------------------------------------------------------
+
+
 #' admin_cascade UI Function
 #'
 #' @description A shiny Module.
@@ -35,6 +39,10 @@ mod_admin_cascade_ui <- function(id,
           selected = "adm0_pcode"
         )
       )),
+
+# Row 2 cascading admin select --------------------------------------------
+
+
     fluidRow(
     column(
       2,
@@ -90,8 +98,7 @@ mod_admin_cascade_ui <- function(id,
     )
     ),
 
-# mod temporal ui ---------------------------------------------------------
-
+# Row 3 Temporal Month Selection ------------------------------------------
 
     fluidRow(
       column(
