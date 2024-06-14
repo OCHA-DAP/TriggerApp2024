@@ -428,18 +428,35 @@ mod_admin_cascade_server <- function(id){
     # observeEvent(
     #   list(input$valid_mo1, input$pub_mo1),
     #   {
+
+
     output$lt_ui <-
       # could probably wrap this all: `sliders_ui()` -- not sure any more
       renderUI({
 
-        available_lts <-  available_lts(
+        available_lt_values <-  available_lts(
           publication_months = as.numeric(input$pub_mo1),
           valid_months = as.numeric(input$valid_mo1)
         )
-        total_lts <- length(available_lts)
+
+        # trouble shooting scra
+
+        ltmos <- unname(available_lt_values)
+        ltmos <- glue::glue_collapse(ltmos,",")
+        pub_mo_glue <- glue::glue_collapse(input$pub_mo1,",")
+        valid_mo_glue <- glue::glue_collapse(input$valid_mo1,",")
+
+        wat <- glue::glue(
+          "pub month: {pub_mo_glue}
+          valid month = {valid_mo_glue}
+          available lt = {ltmos}"
+          )
+        print(wat)
+        # print(unname(available_lt_values))
+        total_lts <- length(available_lt_values)
 
         fluidRow(
-          available_lts |>
+          available_lt_values |>
             purrr::imap(\(mo_tmp,lt_tmp){
               pub_mo_slider_chr <- lubridate::month(as.numeric(mo_tmp), abbr = T, label = T)
               slider_label <- glue::glue("{pub_mo_slider_chr} (LT: {lt_tmp})")

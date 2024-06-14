@@ -23,6 +23,20 @@ available_lts(publication_months= 5, valid_months=valid_month_ex)
 available_lts(publication_months= c(3,4), valid_months=4)
 available_lts(publication_months= c(3), valid_months=4)
 available_lts(publication_months= c(2), valid_months=4)
+available_lts(publication_months= c(10,12,1), valid_months=c(12,1,2,3))
+available_lts(publication_months = c(11,12,1), valid_months = c(1,2,3,4))
+
+# this is wrong!
+pub_mos_issue <- c(1,2,10,11,12)
+valid_mos_issue <- c(2,3,4)
+available_lts(publication_months = pub_mos_issue, valid_months = valid_mos_issue)
+pub_mo_issue_fixed <- c(10,11,12,1,2)
+available_lts(publication_months = pub_mo_issue_fixed, valid_months = valid_mos_issue)
+
+# lets seee w/ circular sort
+available_lts(publication_months = circular_sort(pub_mos_issue), valid_months = circular_sort(valid_mos_issue))
+
+
 
 # what if there is a gap? should this not be allowed somehow or should it be handled
 available_lts(publication_months= c(2,3),valid_months=c(4,6))

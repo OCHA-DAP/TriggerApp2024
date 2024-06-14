@@ -19,5 +19,7 @@ find_pub_mos
 \dontrun{
 find_pub_mos(valid_months = c(12,1,2,3,4,5))
 find_pub_mos(valid_months = c(5,6))
+find_pub_mos(valid_months = c(12,1,2,3))
+find_pub_mos(valid_months= c())
 }
 }

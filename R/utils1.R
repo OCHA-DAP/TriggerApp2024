@@ -238,6 +238,22 @@ thresholds_from_sliders <- function(df,
 #' available_lts(publication_months= c(3,4), valid_months=4)
 #' available_lts(publication_months= c(3), valid_months=4)
 #' available_lts(publication_months= c(2), valid_months=4)
+#' available_lts(publication_months= c(10,12,1), valid_months=c(12,1,2,3))
+#' available_lts(publication_months = c(11,12,1), valid_months = c(1,2,3,4))
+#'
+#' # this is wrong!
+#' pub_mos_issue <- c(1,2,10,11,12)
+#' valid_mos_issue <- c(2,3,4)
+#' available_lts(publication_months = pub_mos_issue, valid_months = valid_mos_issue)
+
+#' pub_mo_issue_fixed <- c(10,11,12,1,2)
+#' available_lts(publication_months = pub_mo_issue_fixed, valid_months = valid_mos_issue)
+#'
+#' # lets seee w/ circular sort
+#' available_lts(publication_months = circular_sort(pub_mos_issue), valid_months = circular_sort(valid_mos_issue))
+
+#'
+#'
 #'
 #' # what if there is a gap? should this not be allowed somehow or should it be handled
 #' available_lts(publication_months= c(2,3),valid_months=c(4,6))
@@ -250,8 +266,8 @@ thresholds_from_sliders <- function(df,
 available_lts <-  function(publication_months, valid_months=c(5,6)){
   list_pub_mos <- load_pub_mo_list()
   # consider renaming `find_valid_month_interval` for purpose before (pub_mos)
-  valid_interval <- find_valid_month_interval(valid_months)
-  pub_interval <- find_valid_month_interval(publication_months)
+  valid_interval <- find_month_range(valid_months)
+  pub_interval <- find_month_range(publication_months)
   latest_month_chr <- lubridate::month(valid_interval$latest,label=T,abbr=T)
 
   # get list of all possible leadtimes months given the latest possible valid month
@@ -285,10 +301,12 @@ available_lts <-  function(publication_months, valid_months=c(5,6)){
 #' @examples \dontrun{
 #' find_pub_mos(valid_months = c(12,1,2,3,4,5))
 #' find_pub_mos(valid_months = c(5,6))
+#' find_pub_mos(valid_months = c(12,1,2,3))
+#' find_pub_mos(valid_months= c())
 #' }
 find_pub_mos <- function(valid_months){
   list_pub_mos <- load_pub_mo_list() # default to lt 6.... could include param...
-  valid_interval <- find_valid_month_interval(valid_months)
+  valid_interval <- find_month_range(valid_months)
   latest_month_chr <- lubridate::month(valid_interval$latest,label=T,abbr=T)
   all_pub_mos <- list_pub_mos[[latest_month_chr]]
   idx_pub_cutoff <- which(all_pub_mos==valid_interval$earliest)
@@ -323,15 +341,16 @@ load_pub_mo_list <- function(lt=6){
 #' @examples \dontrun{
 #' # should throw these in testthat
 #' find_valid_month_interval(valid_months = c(12,1,2,3,4,5))
-#' find_valid_month_interval(valid_months = c(11,12,1,2,3,4,5))
-#' find_valid_month_interval(valid_months = sort(c(11,12,1,2,3)))
-#' find_valid_month_interval(valid_months = sort(c(12,1,2,3)))
-#' find_valid_month_interval(valid_months = c(4,6,7))
+#' find_month_range(m = c(11,12,1,2,3,4,5))
+#' find_month_range(m = sort(c(11,12,1,2,3)))
+#' find_month_range(m = sort(c(12,1,2,3)))
+#' find_month_range(valid_months = c(4,6,7))
+#' find_month_range(valid_months = c(10,11,12,1))
 #' }
 
-find_valid_month_interval <- function(valid_months){
-  valid_months <- as.numeric(valid_months)
-  diff_lag <- (valid_months-dplyr::lag(valid_months))>0
+find_month_range <- function(m){
+  m <- as.numeric(m)
+  diff_lag <- (m-dplyr::lag(m))>0
 
   # experimenting to try to allow gaps in valid_months ####
   # all_seqs <- load_pub_mo_list(lt = 6)
@@ -347,21 +366,36 @@ find_valid_month_interval <- function(valid_months){
 
   idx_switch <- which(diff_lag>1)
   if(length(idx_switch)==0){
-    max_month <- valid_months[length(valid_months)]
-    min_month <- valid_months[1]
+    max_m <- m[length(m)]
+    min_m <- m[1]
   }
   if(length(idx_switch)>0){
-    idx_sort <- c(idx_switch:length(valid_months),1:(idx_switch-1))
-    valid_months_sorted <- valid_months[idx_sort]
-    max_month <- valid_months_sorted[length(valid_months_sorted)]
-    min_month <- valid_months_sorted[1]
+    idx_sort <- c(idx_switch:length(m),1:(idx_switch-1))
+    m_sorted <- m[idx_sort]
+    max_m <- m_sorted[length(m_sorted)]
+    min_m <- m_sorted[1]
   }
   return(
-    list(earliest = min_month, latest = max_month)
+    list(earliest = min_m, latest = max_m)
   )
 }
 
 
+circular_sort <- function(months) {
+  # Find the minimum month to use as a reference point
+  min_month <- min(months)
+  # Adjust months so that the sequence starts from min_month
+  adjusted_months <- (months - min_month) %% 12
+  # Order the months based on the adjusted positions
+  sorted_indices <- order(adjusted_months)
+  # Return the months sorted in the desired circular manner
+  sorted_months <- months[sorted_indices]
+  # Ensure the sequence starts from min_month
+  sorted_months <- sort(sorted_months)
+  return(sorted_months)
+}
+
+# is it scrap below?
 
 adjustable_leadtimes <-  function(publication_months, valid_months){
   pub_mos <-  as.numeric(publication_months)
