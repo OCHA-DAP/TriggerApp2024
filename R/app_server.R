@@ -5,7 +5,7 @@
 #' @import shiny
 #' @noRd
 app_server <- function(input, output, session) {
-  gghdx::load_source_sans_3()
+  # gghdx::load_source_sans_3()
   ldf <- load_df_forecast(dataset = "combined")
 
   df_area_lookup <- arrow::read_parquet(file.path("data","df_admin_area_lookup.parquet"))

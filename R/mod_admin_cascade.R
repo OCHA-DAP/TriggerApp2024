@@ -1,5 +1,5 @@
 
-# UI section --------------------------------------------------------------
+
 
 
 #' admin_cascade UI Function
@@ -18,6 +18,9 @@ mod_admin_cascade_ui <- function(id,
                                  ){
   ns <- NS(id)
   tagList(
+
+# Row 1 Select Window & Analysis Level ------------------------------------
+
     fluidRow(
       column(
         2,
@@ -120,6 +123,8 @@ mod_admin_cascade_ui <- function(id,
           selected = init_pub_months
         )
       ),
+
+# Row 3 - Map component ---------------------------------------------------
       column(
         4,
         leaflet::leafletOutput(ns("map_choro"),width = "100%",height = 200),
@@ -156,7 +161,7 @@ mod_admin_cascade_server <- function(id){
       })
 
 
-    # okay get the dataset and first provide the country options
+    # Update admin 0 options
     observeEvent(
       list(
       dataset_chosen(),
@@ -278,6 +283,7 @@ mod_admin_cascade_server <- function(id){
       level_4= "black"
     )
 
+
     output$map_choro <- leaflet::renderLeaflet({
       req(input$sel_adm0)
       # browser()
@@ -290,16 +296,23 @@ mod_admin_cascade_server <- function(id){
 
       leaflet::leaflet() |>
         leaflet::addTiles() |>
-        leaflet::addPolygons(data=gdf_adm0,
-                             fillColor = "white",
-                             fillOpacity = 0.7,
-                             color = unname(map_line_colors["level_4"]),
-                             weight = 1
+        leaflet::addPolygons(
+          data=gdf_adm0,
+          fillColor = "white",
+          fillOpacity = 0.7,
+          color = unname(map_line_colors["level_4"]),
+          weight = 1,
+          label = ~adm0_en
         ) |>
         leaflet::fitBounds(
-          lng1 =df_adm_bbox[1],lat1 = df_adm_bbox[2],lng2 = df_adm_bbox[3],lat2 = df_adm_bbox[4]
+          lng1 =df_adm_bbox[1],
+          lat1 = df_adm_bbox[2],
+          lng2 = df_adm_bbox[3],
+          lat2 = df_adm_bbox[4]
         )
     })
+
+
 
     observeEvent(
       list(input$sel_adm1,
@@ -322,7 +335,9 @@ mod_admin_cascade_server <- function(id){
                                fillColor ="white",
                                color = "darkgrey",
                                fillOpacity = 0.5,
-                               popup = ~adm1_en
+                               popup = ~adm1_en,
+                               # https://stackoverflow.com/questions/50986918/error-invalid-type-list-of-argument
+                               label= ~paste0(as.character(adm1_en),"")
                                # weight = 1
                                ) |>
           leaflet::addPolygons(
