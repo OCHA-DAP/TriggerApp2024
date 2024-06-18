@@ -15,127 +15,147 @@ mod_admin_cascade_ui <- function(id,
                                  init_valid_months=c(5,6,7,8),
                                  init_pub_months= c(3,4,5),
                                  window_label
-                                 ){
+){
   ns <- NS(id)
   tagList(
 
-# Row 1 Select Window & Analysis Level ------------------------------------
-
+    # Row 1 Select Window & Analysis Level ------------------------------------
     fluidRow(
       column(
-        2,
-        textInput( inputId = ns("window_name"),
-                   label = "Window Name",
-                   value = window_label),
+        width = 12,align = "center"
       ),
-      column(
-        3,
-        selectInput(
-          inputId = ns("analysis_level"),
-          label = "Select Analysis Level",
-          choices = c(
-            Country = "adm0_pcode",
-            `Admin 1` = "adm1_pcode",
-            `Admin 2` = "adm2_pcode",
-            `Admin 3` = "adm3_pcode"
+      fluidRow(
+        column(
+          width = 7,
+          style = 'padding-left:25px;',
+          fluidRow(
+            column(
+              4,
+              textInput( inputId = ns("window_name"),
+                         label = "Window Name",
+                         value = window_label),
+            ),
+            column(
+              4,
+              inputId= ns("sel_adm0"),
+              selectizeInput(ns("sel_adm0"),
+                             label = "Select country",
+                             choices = rlang::set_names(lgdf[["adm0_pcode"]]$adm0_pcode,lgdf[["adm0_pcode"]]$adm0_en),
+                             multiple = T
+              )
+
+            ),
+            column(
+              4,
+              selectInput(
+                inputId = ns("analysis_level"),
+                label = "Select Analysis Level",
+                choices = c(
+                  Country = "adm0_pcode",
+                  `Admin 1` = "adm1_pcode",
+                  `Admin 2` = "adm2_pcode",
+                  `Admin 3` = "adm3_pcode"
+                ),
+                selected = "adm0_pcode"
+              )
+            )),
+
+          # Row 2 cascading admin select --------------------------------------------
+
+
+          fluidRow(
+            # column(
+            #   2,
+            #   conditionalPanel(
+            #     ns = ns,
+            #     condition = "input.analysis_level =='adm0_pcode'|input.analysis_level=='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+            #     selectizeInput(ns("sel_adm0"),
+            #                    label = "Admin 0",
+            #                    choices = NULL,
+            #                    multiple = T
+            #     )
+            #   )
+            # ),
+            column(
+              4,
+              conditionalPanel(
+                ns = ns,
+                condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+                selectizeInput(
+                  ns("sel_adm1"),
+                  label = "Admin 1",
+                  choices = NULL,
+                  # selected = "",
+                  multiple = T
+                )
+
+              )),
+            column(
+              4,
+              conditionalPanel(
+                ns = ns,
+                condition = "input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
+                selectizeInput(
+                  ns("sel_adm2"),
+                  label = "Admin 2",
+                  choices = NULL,
+                  # selected = "",
+                  multiple = T
+                )
+              )),
+            column(
+              4,
+              conditionalPanel(
+                ns = ns,
+                condition = "input.analysis_level=='adm3_pcode'",
+                selectizeInput(
+                  ns("sel_adm3"),
+                  label = "Admin 3",
+                  choices = NULL,
+                  multiple = T
+                )
+              )
+            )
           ),
-          selected = "adm0_pcode"
-        )
-      )),
-
-# Row 2 cascading admin select --------------------------------------------
-
-
-    fluidRow(
-    column(
-      2,
-    conditionalPanel(
-      ns = ns,
-      condition = "input.analysis_level =='adm0_pcode'|input.analysis_level=='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-      selectizeInput(ns("sel_adm0"),
-                     label = "Admin 0",
-                     choices = NULL,
-                     multiple = T
-      )
-      )
-    ),
-    column(
-      2,
-    conditionalPanel(
-      ns = ns,
-      condition = "input.analysis_level =='adm1_pcode'|input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-      selectizeInput(
-        ns("sel_adm1"),
-        label = "Admin 1",
-        choices = NULL,
-        # selected = "",
-        multiple = T
-      )
-
-      )),
-    column(
-      2,
-    conditionalPanel(
-      ns = ns,
-      condition = "input.analysis_level=='adm2_pcode'|input.analysis_level=='adm3_pcode'",
-      selectizeInput(
-        ns("sel_adm2"),
-        label = "Admin 2",
-        choices = NULL,
-        # selected = "",
-        multiple = T
-      )
-    )),
-    column(
-      2,
-    conditionalPanel(
-      ns = ns,
-      condition = "input.analysis_level=='adm3_pcode'",
-      selectizeInput(
-        ns("sel_adm3"),
-        label = "Admin 3",
-        choices = NULL,
-        multiple = T
-      )
-    )
-    )
-    ),
-
-# Row 3 Temporal Month Selection ------------------------------------------
-
-    fluidRow(
-      column(
-        6,
-        shinyWidgets::checkboxGroupButtons(
-          inputId = ns("valid_mo1"), # time of interest
-          choices = c(1:12) |>
-            rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
-          # selected = c(5,6,7,8),
-          selected = init_valid_months,
-          # inline=T,
-          label = "Step 1: Select time period/window of concern"
+          fluidRow(
+            column(
+              12,
+              shinyWidgets::checkboxGroupButtons(
+                inputId = ns("valid_mo1"), # time of interest
+                choices = c(1:12) |>
+                  rlang::set_names(lubridate::month(1:12, label = T, abbr = T)),
+                # selected = c(5,6,7,8),
+                selected = init_valid_months,
+                # inline=T,
+                label = "Step 1: Select time period/window of concern"
+              ),
+              shinyWidgets::checkboxGroupButtons(
+                inputId = ns("pub_mo1"),
+                label = "Step 2: For the time period of concern selected, You can select from the following forecast publications months:",
+                choices = c(1:12) |>
+                  rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
+                selected = init_pub_months
+              )
+            )
+          )
         ),
-        shinyWidgets::checkboxGroupButtons(
-          inputId = ns("pub_mo1"),
-          label = "Step 2: For the time period of concern selected, You can select from the following forecast publications months:",
-          choices = c(1:12) |>
-            rlang::set_names(lubridate::month(c(1:12), label = T, abbr = T)),
-          selected = init_pub_months
+        column(
+          5,
+          leaflet::leafletOutput(ns("map_choro"),width = "100%",height = 400),
         )
       ),
 
-# Row 3 - Map component ---------------------------------------------------
-      column(
-        4,
-        leaflet::leafletOutput(ns("map_choro"),width = "100%",height = 200),
-      )
-    ),
-    # class="control-label"
-    # <div id="foo" class="shiny-text-output" style="color:green;"></div>
-    tags$b(tags$span(class= "control-label",
-                     "Step 3: For each selected publication month you can set an activation threshold:")),
-    uiOutput(ns("lt_ui"))
-  )
+      # Row 3 Temporal Month Selection ------------------------------------------
+
+      # class="control-label"
+      # <div id="foo" class="shiny-text-output" style="color:green;"></div>
+      tags$b(tags$span(class= "control-label", style = 'padding-left:25px;',
+                       "Step 3: For each selected publication month you can set an activation threshold:")),
+      uiOutput(
+        style = 'padding-left:25px;',
+        ns("lt_ui")
+        )
+    ))
 }
 
 #' admin_cascade Server Functions
@@ -158,24 +178,24 @@ mod_admin_cascade_server <- function(id){
       req(input$analysis_level)
       ds_id <- stringr::str_remove(input$analysis_level,"_pcode")
       return(ldf[[ds_id]])
-      })
+    })
 
 
     # Update admin 0 options
-    observeEvent(
-      list(
-      dataset_chosen(),
-      req(input$analysis_level %in% c("adm0_pcode","adm1_pcode","adm2_pcode","adm3_pcode"))
-      )
-      ,{
-
-      df_choices <- dplyr::distinct(dataset_chosen(),adm0_pcode,adm0_en)
-      nv_choices <- rlang::set_names(df_choices$adm0_pcode,df_choices$adm0_en)
-      # freezeReactiveValue(input, "sel_adm0")
-      updateSelectizeInput(inputId = "sel_adm0",
-                           choices = nv_choices)
-    })
-    # filter admin 0
+    # observeEvent(
+    #   list(
+    #     dataset_chosen(),
+    #     req(input$analysis_level %in% c("adm0_pcode","adm1_pcode","adm2_pcode","adm3_pcode"))
+    #   )
+    #   ,{
+    #
+    #     df_choices <- dplyr::distinct(lgdf[["adm0_pcode"]],adm0_pcode,adm0_en)
+    #     nv_choices <- rlang::set_names(df_choices$adm0_pcode,df_choices$adm0_en)
+    #     # freezeReactiveValue(input, "sel_adm0")
+    #     updateSelectizeInput(inputId = "sel_adm0",
+    #                          choices = nv_choices)
+    #   })
+    # # filter admin 0
     filt_adm0 <- reactive({
       req(input$sel_adm0)
       print(dataset_chosen())
@@ -185,18 +205,18 @@ mod_admin_cascade_server <- function(id){
     # populate admin 1 choices
     observeEvent(
       list(
-      input$sel_adm0,
-      # dataset_chosen(),
-      # filt_adm0(),
-      req(input$analysis_level %in% c("adm1_pcode","adm2_pcode","adm3_pcode"))
+        input$sel_adm0,
+        # dataset_chosen(),
+        # filt_adm0(),
+        req(input$analysis_level %in% c("adm1_pcode","adm2_pcode","adm3_pcode"))
       )
-    ,{
-      df_choices <- dplyr::distinct(filt_adm0(),adm1_pcode,adm1_en)
-      nv_choices <- rlang::set_names(df_choices$adm1_pcode,df_choices$adm1_en)
-      freezeReactiveValue(input, ns("sel_adm1"))
-      updateSelectizeInput(inputId = "sel_adm1",
-                           choices = nv_choices)
-    })
+      ,{
+        df_choices <- dplyr::distinct(filt_adm0(),adm1_pcode,adm1_en)
+        nv_choices <- rlang::set_names(df_choices$adm1_pcode,df_choices$adm1_en)
+        freezeReactiveValue(input, ns("sel_adm1"))
+        updateSelectizeInput(inputId = "sel_adm1",
+                             choices = nv_choices)
+      })
 
     # filter to selected admin 1
     filt_adm1 <-  reactive({
@@ -208,12 +228,12 @@ mod_admin_cascade_server <- function(id){
     observeEvent(
       list(input$sel_adm1,
            req(input$analysis_level %in% c("adm2_pcode","adm3_pcode"))
-           ),{
-      df_choices <- dplyr::distinct(filt_adm1(),adm2_pcode,adm2_en)
-      nv_choices <- rlang::set_names(df_choices$adm2_pcode,df_choices$adm2_en)
-      # freezeReactiveValue(input, "sel_adm2")
-      updateSelectizeInput(inputId = "sel_adm2", choices = nv_choices)
-    })
+      ),{
+        df_choices <- dplyr::distinct(filt_adm1(),adm2_pcode,adm2_en)
+        nv_choices <- rlang::set_names(df_choices$adm2_pcode,df_choices$adm2_en)
+        # freezeReactiveValue(input, "sel_adm2")
+        updateSelectizeInput(inputId = "sel_adm2", choices = nv_choices)
+      })
 
 
     # filter to selected admin 2
@@ -227,14 +247,14 @@ mod_admin_cascade_server <- function(id){
       list(
         input$sel_adm2,
         req(input$analysis_level %in% c("adm3_pcode"))
-        ),
-        {
-      df_choices <- dplyr::distinct(filt_adm2(),adm3_pcode,adm3_en)
-      nv_choices <- rlang::set_names(df_choices$adm3_pcode,df_choices$adm3_en)
+      ),
+      {
+        df_choices <- dplyr::distinct(filt_adm2(),adm3_pcode,adm3_en)
+        nv_choices <- rlang::set_names(df_choices$adm3_pcode,df_choices$adm3_en)
 
-      # freezeReactiveValue(input, "sel_adm3")
-      updateSelectizeInput(inputId = "sel_adm3", choices = nv_choices)
-    })
+        # freezeReactiveValue(input, "sel_adm3")
+        updateSelectizeInput(inputId = "sel_adm3", choices = nv_choices)
+      })
 
     # filter to selected admin 3
     filt_adm3 <-  reactive({
@@ -263,13 +283,13 @@ mod_admin_cascade_server <- function(id){
       req(adm_filt())
 
       summarise_forecast_temporal_new(df = adm_filt(),
-                                     publication_month = as.numeric(input$pub_mo1),
-                                     valid_month = as.numeric(input$valid_mo1)
-                                     )
+                                      publication_month = as.numeric(input$pub_mo1),
+                                      valid_month = as.numeric(input$valid_mo1)
+      )
     }
     )
 
-# Map ---------------------------------------------------------------------
+    # Map ---------------------------------------------------------------------
 
     map_fill_colors <- c(
       top_layer = "#F2645A", # tomato-hdx
@@ -339,7 +359,7 @@ mod_admin_cascade_server <- function(id){
                                # https://stackoverflow.com/questions/50986918/error-invalid-type-list-of-argument
                                label= ~paste0(as.character(adm1_en),"")
                                # weight = 1
-                               ) |>
+          ) |>
           leaflet::addPolygons(
             data=gdf_adm1_sel,
             fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_3"]),
@@ -361,7 +381,7 @@ mod_admin_cascade_server <- function(id){
            input$sel_adm2,
            req(input$analysis_level%in% c("adm2_pcode","adm3_pcode"))
       )
-           ,{
+      ,{
         leaflet::leafletProxy(mapId = "map_choro") |>
           # leaflet::clearShapes() |>
           leaflet::addPolygons(data=lgdf[["adm1_pcode"]],
@@ -379,8 +399,8 @@ mod_admin_cascade_server <- function(id){
                                weight = 1) |>
           leaflet::addPolygons(data=dplyr::filter(lgdf[["adm2_pcode"]],adm2_pcode %in% c(input$sel_adm2)),
                                fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_2"]), fillOpacity = 1
-                               )
-    })
+          )
+      })
     # Map out admin 3s
     observeEvent(
       list(input$sel_adm1,
@@ -388,7 +408,7 @@ mod_admin_cascade_server <- function(id){
            input$sel_adm3,
            req(input$analysis_level%in% c("adm3_pcode"))
       )
-           ,{
+      ,{
 
         leaflet::leafletProxy(mapId = "map_choro") |>
           # leaflet::clearShapes() |>
@@ -408,18 +428,18 @@ mod_admin_cascade_server <- function(id){
                                weight = 1) |>
           leaflet::addPolygons(data=dplyr::filter(lgdf[["adm2_pcode"]],adm2_pcode %in% c(input$sel_adm2)),
                                fillColor =unname(map_fill_colors["middle_layer"]),color=unname(map_line_colors["level_2"]), fillOpacity = 1
-                               ) |>
-               leaflet::addPolygons(data=dplyr::filter(lgdf[["adm3_pcode"]],adm2_pcode %in% c(input$sel_adm2)),
-                                    fillColor =NULL,fillOpacity = 0,
-                                    color = "darkgrey",
-                                    weight = 1) |>
-               leaflet::addPolygons(data=dplyr::filter(lgdf[["adm3_pcode"]],adm3_pcode %in% c(input$sel_adm3)),
-                                    fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_2"]), fillOpacity = 1
-               )
-    })
+          ) |>
+          leaflet::addPolygons(data=dplyr::filter(lgdf[["adm3_pcode"]],adm2_pcode %in% c(input$sel_adm2)),
+                               fillColor =NULL,fillOpacity = 0,
+                               color = "darkgrey",
+                               weight = 1) |>
+          leaflet::addPolygons(data=dplyr::filter(lgdf[["adm3_pcode"]],adm3_pcode %in% c(input$sel_adm3)),
+                               fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_2"]), fillOpacity = 1
+          )
+      })
 
 
-# mod_temporal ------------------------------------------------------------
+    # mod_temporal ------------------------------------------------------------
 
 
     pub_mo_choices <- reactive({
@@ -482,7 +502,7 @@ mod_admin_cascade_server <- function(id){
           "pub month: {pub_mo_glue}
           valid month = {valid_mo_glue}
           available lt = {ltmos}"
-          )
+        )
         print(wat)
         # print(unname(available_lt_values))
         total_lts <- length(available_lt_values)
