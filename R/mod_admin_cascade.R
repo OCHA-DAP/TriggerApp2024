@@ -140,7 +140,7 @@ mod_admin_cascade_ui <- function(id,
           )
         ),
         column(
-          5,
+          5,style = 'padding-right:25px;',
           leaflet::leafletOutput(ns("map_choro"),width = "100%",height = 400),
         )
       ),
@@ -165,15 +165,6 @@ mod_admin_cascade_server <- function(id){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-
-
-    # thes issue is that its choosing this always as the dataset...
-    # so would need an action button to see the correct
-    # rendered table ... for example if you select admin 3
-    # and then only filter to admin 2 , you will still just get the admin 3 table
-    # rendered and filtered to the admin 2... its not going to show the
-    # correct table till you get to admin 3... but htats not even really working correctl yet either
-
     dataset_chosen <- reactive({
       req(input$analysis_level)
       ds_id <- stringr::str_remove(input$analysis_level,"_pcode")
@@ -181,21 +172,6 @@ mod_admin_cascade_server <- function(id){
     })
 
 
-    # Update admin 0 options
-    # observeEvent(
-    #   list(
-    #     dataset_chosen(),
-    #     req(input$analysis_level %in% c("adm0_pcode","adm1_pcode","adm2_pcode","adm3_pcode"))
-    #   )
-    #   ,{
-    #
-    #     df_choices <- dplyr::distinct(lgdf[["adm0_pcode"]],adm0_pcode,adm0_en)
-    #     nv_choices <- rlang::set_names(df_choices$adm0_pcode,df_choices$adm0_en)
-    #     # freezeReactiveValue(input, "sel_adm0")
-    #     updateSelectizeInput(inputId = "sel_adm0",
-    #                          choices = nv_choices)
-    #   })
-    # # filter admin 0
     filt_adm0 <- reactive({
       req(input$sel_adm0)
       print(dataset_chosen())
