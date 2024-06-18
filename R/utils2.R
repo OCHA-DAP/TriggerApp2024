@@ -609,7 +609,7 @@ gt_style_thresh_table <- function(gt_ob,table_type){
     ret_gt <- gt_num_formatted |>
       gt::tab_spanner(
         columns = dplyr::any_of(as.character(c(0:6))),
-        label = "Thresholds (mm) for different\nleadtimes based on selected RPs",
+        label = "Rainfall threshold (mm) by leadtime",
       ) |>
       gt::tab_spanner(
         columns = dplyr::ends_with("_en"),

@@ -11,11 +11,16 @@ mod_rp_analysis_individual_ui <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
+      column(
+        width = 12,align = "center",
+    fluidRow(
       column(width = 6,
              tableOutput(outputId = ns("tbl_strata_level")),
       )
     )
 
+  )
+    )
   )
 }
 
@@ -75,6 +80,10 @@ mod_rp_analysis_individual_server <- function(id,l_inputs){
             gt::cell_text(color = 'white'),
             gt::cell_fill(color = '#55b284ff')
           )
+        ) |>
+        gt::tab_options(
+          table.font.size= 14,
+          table.align = "left"
         )
     })
 

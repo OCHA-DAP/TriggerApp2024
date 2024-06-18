@@ -238,14 +238,6 @@ mod_admin_cascade_server <- function(id){
       dplyr::filter(filt_adm2(),adm3_pcode %in% input$sel_adm3)
     })
 
-
-
-    #   observe({
-    #     if(input$analysis_level=="adm3_pcode"){
-    #    browser()
-    #     adm0() %||% adm1() %||% adm2() %||% adm3()
-    #     }
-    # })
     adm_filt <-reactive({
       switch(
         input$analysis_level,
@@ -319,9 +311,7 @@ mod_admin_cascade_server <- function(id){
         gdf_adm1 <- dplyr::filter(lgdf[["adm1_pcode"]], adm0_pcode %in% c(input$sel_adm0))
         gdf_adm1_sel <- dplyr::filter(gdf_adm1,adm1_pcode %in% c(input$sel_adm1))
 
-        # casting to line allows us to plot on top of other layers, but have
-        # layers underneath still show popup
-        # **NOTE** can get performance improvement by pre-casting admin 0s
+        # GH-18
         gdf_adm0_line <- sf::st_cast(gdf_adm0,"MULTILINESTRING")
 
 
@@ -341,10 +331,8 @@ mod_admin_cascade_server <- function(id){
             fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_3"]),
             # weight = 1
             fillOpacity = 1,
-            popup = ~adm1_en
-            ## **NOTE** not sure why these both freeze app"
-            # label = ~adm1_en
-            # label = gdf_adm1_sel[["adm1_en"]]
+            popup = ~adm1_en,
+            label= ~paste0(as.character(adm1_en),"")
           ) |>
           leaflet::addPolylines(
             data=gdf_adm0_line,
@@ -372,7 +360,9 @@ mod_admin_cascade_server <- function(id){
           leaflet::addPolygons(data=dplyr::filter(lgdf[["adm2_pcode"]],adm1_pcode %in% input$sel_adm1),
                                fillColor =NULL,fillOpacity = 0,
                                color = "darkgrey",
-                               weight = 1) |>
+                               weight = 1,
+                               label= ~paste0(as.character(adm2_en),"")
+                               ) |>
           leaflet::addPolygons(data=dplyr::filter(lgdf[["adm2_pcode"]],adm2_pcode %in% c(input$sel_adm2)),
                                fillColor =unname(map_fill_colors["top_layer"]),color=unname(map_line_colors["level_2"]), fillOpacity = 1
           )
