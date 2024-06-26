@@ -8,8 +8,20 @@ License: MIT + file LICENSE
 Imports: 
     arrow,
     config (>= 0.3.2),
+    dplyr,
+    gghdx,
+    ggplot2,
+    glue,
     golem (>= 0.4.1),
-    shiny (>= 1.8.0)
+    gt,
+    lubridate,
+    purrr,
+    readr,
+    rlang,
+    shiny (>= 1.8.0),
+    shinyWidgets,
+    stringr,
+    tidyr
 Suggests: 
     spelling,
     testthat (>= 3.0.0)
