@@ -666,7 +666,7 @@ lookup_rename_gt <-  function(analysis_level){
     overall_rp = "Joint RP",
     adm0_en = "Country",
     adm1_en = "Region",
-    adm2_en = "District",
+    adm2_en = "Zone",
     adm3_en = "Woreda"
   )
   switch(analysis_level,
