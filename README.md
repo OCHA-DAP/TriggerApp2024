@@ -16,9 +16,30 @@ The goal of TriggerApp2024 is to …
 You can install the development version of TriggerApp2024 like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
-```
+devtools::install(getwd())
+library(TriggerApp2024)
+ldf <- load_df_forecast(dataset = "mars_eth")
+#TriggerApp2024::run_app()
 
+source("R/mod_historical_process_simp_test.R")
+source("test2.R")
+run_app()
+
+```
+``` r
+# Define the function to source all R scripts in a directory
+source_all_scripts <- function(directory) {
+  # Get a list of all R files in the directory
+  r_files <- list.files(directory, pattern = "\\.R$", full.names = TRUE)
+  
+  # Source each file
+  sapply(r_files, source, .GlobalEnv)
+}
+
+# Source all R scripts in the 'R' directory
+source_all_scripts("R")
+TriggerApp2024::run_app()
+```
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
@@ -26,6 +47,9 @@ This is a basic example which shows you how to solve a common problem:
 ``` r
 library(TriggerApp2024)
 ## basic example code
+|> dplyr::bind_rows(data.frame(adm0_en = "Aggregate",
+                                    overall_activation = sum(joint_ar$overall_activation, na.rm = T),
+                                    overall_rp = 1 / sum(joint_ar$overall_activation, na.rm = T)))
 ```
 
 What is special about using `README.Rmd` instead of just `README.md`?
