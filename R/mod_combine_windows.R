@@ -10,15 +10,23 @@
 mod_combine_windows_ui <- function(id){
   ns <- NS(id)
   tagList(
-    h1("combined activation/return periods across windows"),
+    # h3("Combined activation/return periods across windows"),
+    # fluidRow(
+    #   column(4,
+    #          tableOutput(outputId = ns("tbl_joint_rate_per_window")),
+    #          ),
+    #   column(
+    #     4,
+    #     tableOutput(outputId = ns("tbl_joint_rate_overall")),
+    #   )
+    # )
     fluidRow(
-      column(4,
-             tableOutput(outputId = ns("tbl_joint_rate_per_window")),
-             ),
-      column(
-        4,
-        tableOutput(outputId = ns("tbl_joint_rate_overall")),
-      )
+      # column(3,
+      #        h3("Combined activation/return periods across windows")
+      #        ),
+      column(12,
+             htmlOutput(outputId = ns("joint_rate_text")),
+             )
     )
   )
 }
@@ -57,6 +65,23 @@ mod_combine_windows_server <- function(id,l_w1_inputs, l_w2_inputs){
         joint_rates_overall = joint_activation_rates_overall
       )
     })
+
+    output$joint_rate_text <-  renderUI({
+      joint_rp <- l_combined_window()$joint_rates_overall$overall_rp
+      joint_ar <- l_combined_window()$joint_rates_overall$overall_activation
+
+      joint_ar_txt <-  paste0(round(joint_ar,2)*100," %")
+      joint_rp_txt <-  round(joint_rp,1)
+
+      HTML(glue::glue(
+        '<span style="font-size: 18px;">Across all windows:</span>
+      <span style="font-size: 24px;">
+      1 in {joint_rp_txt} year return period ({joint_ar_txt})
+      </span>'
+      )
+      )
+    })
+
 
     output$tbl_joint_rate_per_window <-  gt::render_gt({
       l_combined_window()$joint_rates_per_window |>

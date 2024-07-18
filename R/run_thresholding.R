@@ -63,9 +63,12 @@ run_thresholding2 <-  function(df,
     #   <4){
     #   browser()
     # }
-    df_summarised_combined <- aggregate_weighted_forecast(df = df,
-                                                          df_area_loookup = df_area_lookup,
-                                                          analysis_level = analysis_level)
+    df_summarised_combined <- aggregate_weighted_forecast(
+      df = df,
+      df_area_loookup = df_area_lookup,
+      analysis_level = analysis_level
+      )
+
     df_thresholds_combined <-  threshold_values(
       df= df_summarised_combined,
       slider_rps =leadtimes
