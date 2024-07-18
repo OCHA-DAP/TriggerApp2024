@@ -1,3 +1,7 @@
+
+
+
+
 #' The application server-side
 #'
 #' @param input,output,session Internal parameters for {shiny}.
@@ -5,11 +9,12 @@
 #' @import shiny
 #' @noRd
 app_server <- function(input, output, session) {
-  # gghdx::load_source_sans_3()
-  ldf <- load_df_forecast(dataset = "combined")
+  ldf <- load_df_forecast_parquets(dataset = "combined")
+  df_area_lookup <- arrow::read_parquet(file.path(".data-scrap","orig_external_data","df_admin_area_lookup.parquet"))
+  lgdf <- readr::read_rds(file.path(".data-scrap","orig_external_data","lgdf_combined.rds"))
 
-  df_area_lookup <- arrow::read_parquet(file.path("data","df_admin_area_lookup.parquet"))
-  lgdf <- readr::read_rds(file.path("data","lgdf_combined.rds"))
+  # df_area_lookup <- arrow::read_parquet(file.path("data","df_admin_area_lookup.parquet"))
+  # lgdf <- readr::read_rds(file.path("data","lgdf_combined.rds"))
 
   mod_intro_server("intro_1")
   w1_adm_inputs <- mod_admin_cascade_server("window_1")

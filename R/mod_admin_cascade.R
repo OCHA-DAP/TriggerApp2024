@@ -437,6 +437,18 @@ mod_admin_cascade_server <- function(id){
           # disabled = T,
           disabledChoices = disabled_choices
         )
+
+
+        valid_choices_available <- load_valid_mo_options(as.numeric(input$valid_mo1))
+        valid_disabled_choices <- all_choices[!all_choices %in% valid_choices_available]
+        shinyWidgets::updateCheckboxGroupButtons(
+          session,
+          inputId = "valid_mo1",
+          choices = all_choices,
+          selected = input$valid_mo1,
+          # disabled = T,
+          disabledChoices = valid_disabled_choices
+        )
       }
     )
 

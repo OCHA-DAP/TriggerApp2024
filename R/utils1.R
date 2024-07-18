@@ -2,26 +2,32 @@ paste_varselects <-  function(l){
   glue::glue_collapse(l,sep = ",")
 }
 
-#' load_df_forecast
+#' load_df_forecast_parquets
 #' @description
 #' convenience function to load appropriate dataset for app development
 #' Does need some work.
 #' @return `data.frame` with forecast in format required by app.
-#' @export
-#'
+
 #' @examples \dontrun{
 #' load_df_forecast(dataset= "mars_eth")
 #' }
-load_df_forecast <-  function(dataset="mars_lac"){
+#' @export
+load_df_forecast_parquets <-  function(dataset_dir = ".data-scrap/orig_external_data" ,dataset="mars_lac"){
 
 
   if(dataset=="mars_lac"){
-    ret <- arrow::read_parquet("data/df_mars_historical.parquet")
+    ret <- arrow::read_parquet(
+      file.path(
+        dataset_dir,
+        "df_mars_historical.parquet"
+      )
+    )
+
   }
   if(dataset=="mars_eth"){
     eth_files <- stringr::str_subset(list.files('data'),pattern = "eth")
     fp_eth_files <- file.path(
-      "data",
+      dataset_dir,
       eth_files
     )
     adm_level_labels <- stringr::str_extract(eth_files,"adm\\d")
@@ -37,9 +43,9 @@ load_df_forecast <-  function(dataset="mars_lac"){
 
   }
   if(dataset=="combined"){
-    comb_files <- stringr::str_subset(list.files('data'),pattern = "df_mars_zonal")
+    comb_files <- stringr::str_subset(list.files(dataset_dir),pattern = "df_mars_zonal")
     fp_comb_files <- file.path(
-      "data",
+      dataset_dir,
       comb_files
     )
     adm_level_labels <- stringr::str_extract(fp_comb_files,"adm\\d")
@@ -52,8 +58,9 @@ load_df_forecast <-  function(dataset="mars_lac"){
         )
       }
     )
-    lgdf_adm0_2$adm3 <- arrow::read_parquet(file.path("data",
-                                                      "df_eth_mars_zonal_adm3.parquet")
+    lgdf_adm0_2$adm3 <- arrow::read_parquet(
+      file.path(dataset_dir,
+                "df_eth_mars_zonal_adm3.parquet")
     )
     ret <- lgdf_adm0_2
   }
@@ -327,6 +334,53 @@ load_pub_mo_list <- function(lt=6){
     }
     )
 }
+
+
+#' load_valid_mo_options
+#' @param valid_months `integer` containeing valid month sequence
+#' @export
+load_valid_mo_options <- function(valid_months){
+  # Define the number of rows and columns
+  n_rows <- 12
+  n_cols <- 6
+
+  # Create the matrix with the desired pattern
+  matrix <- matrix(nrow = n_rows, ncol = n_cols)
+
+  # Fill the matrix using modular arithmetic
+  for (i in 1:n_rows) {
+    for (j in 1:n_cols) {
+      matrix[i, j] <- ((i + j - 2) %% n_rows) + 1
+    }
+  }
+  filtered_df <- data.frame(matrix) |>
+    dplyr::rowwise() |>
+    dplyr::filter(
+      contains_sequence(
+      dplyr::c_across(everything()), seq =valid_months )
+      ) |>
+    dplyr::ungroup()
+
+  filtered_df |>
+    unlist() |>
+    unique()
+}
+
+
+contains_sequence <- function(row, seq) {
+  for (i in 1:(length(row) - length(seq) + 1)) {
+    if (all(row[i:(i + length(seq) - 1)] == seq)) {
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
+
+# Use dplyr to filter rows that contain the sequence
+
+
+
 
 
 #' find_latest_valid_month
