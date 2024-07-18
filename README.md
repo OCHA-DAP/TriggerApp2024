@@ -9,7 +9,25 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-The goal of TriggerApp2024 is to …
+TriggerApp2024 is an exploratory AA drought trigger app built in R with
+`{shiny}` & `{golem}`.
+
+This repo/version of app is more of a proof of concept and is not yet
+deployed as it will require a more robust software stack to deploy.
+
+## Data Sources
+
+- ECMWF Seasonal Forecasts (SEAS5) aggregated to admin boundaries of
+  several countries
+
+## Countries included (so far)
+
+- Afghanistan (adm 0-2)
+- Ethiopia (admin 0-3)
+- Guatemala (admin 0-2)
+- Nicaragua (admin 0-2)
+- Honduras (admin 0-2)
+- El Salvador (admin (0-2)
 
 ## Installation
 
@@ -19,35 +37,40 @@ You can install the development version of TriggerApp2024 like so:
 # FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
 ```
 
-## Example
+## Dev Information
 
-This is a basic example which shows you how to solve a common problem:
+- Currently using local data files (mostly parquets) located in the
+  `.data-scrap` folder. These need to be shared in order for other
+  analysts to work in current version.
+- From what I understand `{golem}` expects data to be stored as `.rda`
+  files as a normal package would. I tried this, but the load time for
+  the app when using `golem::run_dev()` was frustratingly slow so I
+  switched back to parquets.
+- As this is more of a proof of concept I have not spent a huge amount
+  of time checking the proper storage solution yet as I think alot will
+  change as we think about how to properly deploy the app with our
+  current and future available tech stack. Therefore, so far this repo
+  is focused on getting the desired functionality using a couple local
+  data sets.
 
-``` r
-library(TriggerApp2024)
-## basic example code
-```
+## Known Issues
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+- App freezes if a gap becomes present in valid month check box. For
+  example if you check `May` and `July` but not `June`. I am considering
+  testing out using a slider widget rather than `checkboxGroupButtons`
+  for valid months to avoid this.
+- Several issues where old values from map stay in background when
+  selecting a new variable - should be easily fixable.
 
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
+## Thoughts/notes on future of deployment/data storage
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+- **Deployment:** based on current stack we will probably want to deploy
+  as Azure web app.
+  - unlike python Azure Web Apps do not natively render R and therefore
+    require a deployment through a dockerized container
+- **Data storage:** it seems likely that we will want to access data
+  stored on our blob storage or potentially bundle this data in the
+  docker container required. I am not sure of the advantageous of
+  either, but given that we will eventually want to scale this app
+  globally the data size will be significant. Access via `duckdb` seems
+  like a good and promising option in either case.
